@@ -72,9 +72,22 @@ export interface Contract {
   discountPercentage: number;
 }
 
+export interface Room {
+  id: string;
+  name: string;
+  description: string;
+  frontModelId: string; // Determines colors and styles for all products in room
+  dimensions?: {
+    width: number;
+    height: number;
+    depth: number;
+  };
+}
+
 export interface QuoteItem {
   id: string;
   productId: string;
+  roomId: string; // Links item to a specific room
   quantity: number;
   customDimensions?: {
     width?: number;
@@ -92,6 +105,7 @@ export interface QuoteItem {
 export interface Quote {
   id: string;
   customerId: string;
+  rooms: Room[];
   items: QuoteItem[];
   contractDiscount: number;
   customerDiscount: number;

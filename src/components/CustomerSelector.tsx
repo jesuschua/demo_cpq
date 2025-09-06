@@ -15,7 +15,6 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
   return (
     <div className="max-w-2xl mx-auto mt-12 px-4">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Select Customer</h2>
         <p className="text-gray-600 mb-6">Choose a customer to begin creating a quote</p>
         
         <div className="space-y-3">
