@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Quote, Customer, Room } from './types';
 import { customers, models, products, processings, processingRules, productDependencies } from './data/sampleData';
+import MinimalDashboard from './components/MinimalDashboard';
 import CustomerSelector from './components/CustomerSelector';
-import RoomManager from './components/RoomManager';
-import ProductCatalog from './components/ProductCatalog';
-import ImprovedProcessingManager from './components/ImprovedProcessingManager';
+import ImprovedRoomManager from './components/ImprovedRoomManager';
+import CleanProductCatalog from './components/CleanProductCatalog';
+import LiveProcessingProductManager from './components/LiveProcessingProductManager';
 
 // Define the 4 clear phases
 type WorkflowPhase = 'customer_config' | 'room_config' | 'product_config' | 'quote_finalize';
+type AppView = 'dashboard' | 'workflow';
 
 interface WorkflowState {
   currentPhase: WorkflowPhase;
@@ -23,6 +25,7 @@ interface WorkflowState {
 }
 
 function ImprovedApp() {
+  const [currentView, setCurrentView] = useState<AppView>('dashboard');
   const [workflow, setWorkflow] = useState<WorkflowState>({
     currentPhase: 'customer_config',
     customer: null,
@@ -224,6 +227,19 @@ function ImprovedApp() {
     }));
   };
 
+  const adjustProductQuantity = (productId: string, change: number) => {
+    setWorkflow(prev => ({
+      ...prev,
+      products: prev.products.map(item => {
+        if (item.productId === productId) {
+          const newQuantity = item.quantity + change;
+          return { ...item, quantity: newQuantity };
+        }
+        return item;
+      }).filter(item => item.quantity > 0) // Remove items with 0 or negative quantity
+    }));
+  };
+
   // Print quote
   const printQuote = () => {
     try {
@@ -231,6 +247,93 @@ function ImprovedApp() {
     } catch (error) {
       console.error('Print failed:', error);
       alert('Print functionality is not available in this browser.');
+    }
+  };
+
+  // Dashboard handlers
+  const handleStartNewQuote = (customer: Customer) => {
+    setWorkflow({
+      currentPhase: 'room_config', // Skip customer selection, go directly to room
+      customer,
+      room: null,
+      products: [],
+      quote: null,
+      savedStates: {}
+    });
+    setCurrentView('workflow');
+  };
+
+  const handleEditQuote = (quote: Quote) => {
+    const customer = customers.find(c => c.id === quote.customerId);
+    if (customer && quote.rooms.length > 0) {
+      setWorkflow({
+        currentPhase: 'quote_finalize',
+        customer,
+        room: quote.rooms[0],
+        products: quote.items,
+        quote,
+        savedStates: {}
+      });
+      setCurrentView('workflow');
+    }
+  };
+
+  const handleReturnToDashboard = () => {
+    setCurrentView('dashboard');
+    // Reset workflow when returning to dashboard
+    setWorkflow({
+      currentPhase: 'customer_config',
+      customer: null,
+      room: null,
+      products: [],
+      quote: null,
+      savedStates: {}
+    });
+  };
+
+  const handleSaveQuote = () => {
+    console.log('handleSaveQuote called');
+    console.log('workflow.quote:', workflow.quote);
+    
+    if (workflow.quote) {
+      // Ensure quote has all required properties
+      const quoteToSave = {
+        ...workflow.quote,
+        id: workflow.quote.id || Date.now().toString(),
+        quoteNumber: workflow.quote.quoteNumber || `QUOTE-${Date.now()}`,
+        savedAt: new Date(),
+        status: workflow.quote.status || 'draft'
+      };
+      
+      console.log('Saving quote:', quoteToSave);
+      
+      // Save to localStorage
+      const existingQuotes = JSON.parse(localStorage.getItem('savedQuotes') || '[]');
+      const updatedQuotes = [...existingQuotes.filter((q: Quote) => q.id !== quoteToSave.id), quoteToSave];
+      localStorage.setItem('savedQuotes', JSON.stringify(updatedQuotes));
+      
+      console.log('Quotes after save:', updatedQuotes.length);
+      
+      alert('Quote saved successfully!');
+      handleReturnToDashboard();
+    } else {
+      console.log('No quote to save - workflow.quote is null');
+      // Try to create quote if it doesn't exist
+      if (workflow.customer && workflow.room && workflow.products.length > 0) {
+        console.log('Creating quote before saving...');
+        createQuoteFromCurrentState();
+        
+        // Retry save after creating quote
+        setTimeout(() => {
+          if (workflow.quote) {
+            handleSaveQuote();
+          } else {
+            alert('Error: Unable to create quote for saving');
+          }
+        }, 100);
+      } else {
+        alert('Error: Quote cannot be saved - missing required data');
+      }
     }
   };
 
@@ -271,8 +374,20 @@ function ImprovedApp() {
     }
   };
 
+  // Dashboard view
+  if (currentView === 'dashboard') {
+    return (
+      <MinimalDashboard
+        customers={customers}
+        onStartNewQuote={handleStartNewQuote}
+        onEditQuote={handleEditQuote}
+      />
+    );
+  }
+
+  // Workflow view
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header with Phase Progression */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -381,7 +496,7 @@ function ImprovedApp() {
               </p>
             </div>
 
-            <RoomManager
+            <ImprovedRoomManager
               models={models}
               onCreateQuote={handleRoomCreate}
               existingRooms={workflow.room ? [workflow.room] : []}
@@ -429,13 +544,12 @@ function ImprovedApp() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <ProductCatalog
+                <CleanProductCatalog
                   models={models} // Pass all models
                   products={products}
-                  processings={processings}
                   selectedModel={getCurrentRoomModel()}
                   onModelSelect={() => {}} // Disabled in improved workflow
-                  onAddToQuote={(product, quantity) => handleProductAdd(product.id, quantity)}
+                  onProductSelect={(product, quantity) => handleProductAdd(product.id, quantity)}
                   hasQuote={true}
                   onCreateQuote={() => {}}
                 />
@@ -498,7 +612,7 @@ function ImprovedApp() {
               <p className="text-gray-600">Review and configure final quote details</p>
             </div>
 
-            <ImprovedProcessingManager
+            <LiveProcessingProductManager
               quote={workflow.quote}
               rooms={workflow.quote.rooms}
               products={products}
@@ -507,57 +621,12 @@ function ImprovedApp() {
               productDependencies={productDependencies}
               onQuoteUpdate={handleQuoteUpdate}
             />
-
-            <div className="mt-6 flex justify-between">
-              <button
-                onClick={goToPreviousPhase}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
-              >
-                ← Back to Products
-              </button>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => {
-                    const quoteData = {
-                      ...workflow.quote,
-                      quoteNumber: `Q-${Date.now().toString().slice(-6)}`,
-                      savedAt: new Date()
-                    };
-                    console.log('Quote saved:', quoteData);
-                    alert(`Quote ${quoteData.quoteNumber} saved successfully!`);
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-                >
-                  Save Final Quote
-                </button>
-                <button
-                  onClick={() => {
-                    try {
-                      window.print();
-                    } catch (error) {
-                      console.error('Print failed:', error);
-                      alert('Print functionality is not available in this browser.');
-                    }
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
-                >
-                  Print Quote
-                </button>
-                <button
-                  onClick={resetWorkflow}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md"
-                >
-                  New Quote
-                </button>
-              </div>
-            </div>
           </div>
         )}
           </div>
 
-          {/* Selected Products Sidebar */}
-          {(workflow.currentPhase === 'product_config' || workflow.currentPhase === 'quote_finalize') && (
+          {/* Selected Products Sidebar - Only for product_config phase */}
+          {workflow.currentPhase === 'product_config' && (
             <div className="w-80 bg-white rounded-lg shadow-lg p-6 h-fit sticky top-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <svg className="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -579,10 +648,9 @@ function ImprovedApp() {
                     const productDetails = products.find(p => p.id === product.productId);
                     return (
                       <div key={product.productId} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-start mb-2">
                           <div className="flex-1">
                             <h4 className="text-sm font-medium text-gray-900">{productDetails?.name}</h4>
-                            <p className="text-xs text-gray-600">Qty: {product.quantity}</p>
                             <p className="text-xs text-gray-600">${productDetails?.basePrice.toFixed(2)} each</p>
                           </div>
                           <button
@@ -591,6 +659,34 @@ function ImprovedApp() {
                           >
                             Remove
                           </button>
+                        </div>
+                        
+                        {/* Quantity Controls */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-600">Quantity:</span>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => adjustProductQuantity(product.productId, -1)}
+                              className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 text-sm"
+                            >
+                              −
+                            </button>
+                            <span className="text-sm font-medium w-8 text-center">{product.quantity}</span>
+                            <button
+                              onClick={() => adjustProductQuantity(product.productId, 1)}
+                              className="w-6 h-6 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center text-white text-sm"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* Total for this product */}
+                        <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200">
+                          <span className="text-xs text-gray-600">Total:</span>
+                          <span className="text-sm font-semibold text-green-600">
+                            ${((productDetails?.basePrice || 0) * product.quantity).toFixed(2)}
+                          </span>
                         </div>
                       </div>
                     );
@@ -634,6 +730,23 @@ function ImprovedApp() {
               </div>
 
               <div className="flex space-x-3">
+                <button
+                  onClick={handleReturnToDashboard}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm flex items-center"
+                >
+                  🏠 Main
+                </button>
+
+                {/* Save Draft - available from any phase with customer selected */}
+                {workflow.customer && (
+                  <button
+                    onClick={handleSaveQuote}
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-md text-sm flex items-center"
+                  >
+                    💾 Save Draft
+                  </button>
+                )}
+
                 {workflow.currentPhase !== 'customer_config' && (
                   <button
                     onClick={goToPreviousPhase}
@@ -655,10 +768,10 @@ function ImprovedApp() {
                 {workflow.currentPhase === 'quote_finalize' && workflow.quote && (
                   <div className="flex space-x-2">
                     <button
-                      onClick={saveCurrentPhase}
+                      onClick={handleSaveQuote}
                       className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm"
                     >
-                      Save Quote
+                      Save & Return
                     </button>
                     <button
                       onClick={printQuote}
