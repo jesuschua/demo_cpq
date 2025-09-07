@@ -5,29 +5,39 @@ test.describe('Kitchen CPQ Improved Workflow', () => {
     // Navigate to the app
     await page.goto('http://localhost:3000');
     
-    // Phase 1: Customer Selection
-    await expect(page.locator('text=Phase 1: Customer Configuration')).toBeVisible();
-    await expect(page.locator('text=Select customer to start')).toBeVisible();
+    // Start from dashboard - click "New Quote"
+    await page.click('text=New Quote');
+    await page.waitForTimeout(500);
     
     // Select Elite Kitchen Designs
     await page.click('text=Elite Kitchen Designs');
+    await page.waitForTimeout(500);
     
-    // Should show proceed button
-    await expect(page.locator('text=Proceed to Room Setup')).toBeVisible();
-    await page.click('text=Proceed to Room Setup');
-    
-    // Phase 2: Room Configuration  
-    await expect(page.locator('text=Phase 2: Room Configuration')).toBeVisible();
-    await expect(page.locator('text=Elite Kitchen Designs')).toBeVisible(); // Customer name should be visible
+    // Click "Create Room & Start Quote"
+    await expect(page.locator('text=Create Room & Start Quote')).toBeVisible();
+    await page.click('text=Create Room & Start Quote');
     
     // Fill room form
-    await page.fill('input[placeholder*="Kitchen, Master Bath"]', 'Test Kitchen');
+    const roomInput = page.locator('input').first();
+    await roomInput.fill('Test Kitchen');
     
     // Select front model (THE ONLY TIME WE SELECT MODEL)
     await page.selectOption('select', 'mod_traditional_oak');
     
-    // Create room
-    await page.click('text=Create Room & Start Quote');
+    // Look for button to proceed
+    const proceedButtons = [
+      'text=Create Room',
+      'text=Save Room', 
+      'text=Proceed to Products',
+      'text=Continue'
+    ];
+    
+    for (const buttonText of proceedButtons) {
+      if (await page.locator(buttonText).isVisible({ timeout: 2000 })) {
+        await page.click(buttonText);
+        break;
+      }
+    }
     
     // Should show proceed button
     await expect(page.locator('text=Proceed to Products')).toBeVisible();

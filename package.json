@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.5",
     "@tailwindcss/forms": "^0.5.7",
     "@types/node": "^16.18.68",
     "@types/react": "^18.2.43",
@@ -22,7 +23,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "mcp:start": "node mcp-server.js",
+    "mcp:inspector": "mcp-inspector",
+    "mcp:compile": "tsc mcp-server.ts --target es2022 --module esnext --moduleResolution node --outDir ./dist"
   },
   "eslintConfig": {
     "extends": [
