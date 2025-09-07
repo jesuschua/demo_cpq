@@ -30,7 +30,7 @@
           - heading "Configure Products" [level=2] [ref=e34]
           - paragraph [ref=e35]:
             - text: "Room:"
-            - generic [ref=e36]: Master Bathroom
+            - generic [ref=e36]: Bathroom
             - text: "| Front Model:"
             - generic [ref=e37]: Traditional Oak
         - generic [ref=e38]:
@@ -192,7 +192,7 @@
               - generic [ref=e267]:
                 - paragraph [ref=e268]:
                   - generic [ref=e269]: "Room:"
-                  - generic [ref=e270]: Master Bathroom
+                  - generic [ref=e270]: Bathroom
                 - paragraph [ref=e271]:
                   - generic [ref=e272]: "Front Model:"
                   - generic [ref=e273]: Traditional Oak

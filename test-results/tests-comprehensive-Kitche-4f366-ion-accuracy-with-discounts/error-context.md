@@ -72,5 +72,6 @@
         - button "← Back" [ref=e85] [cursor=pointer]
         - generic [ref=e86]:
           - button "Save & Return" [ref=e87] [cursor=pointer]
-          - button "Print" [ref=e88] [cursor=pointer]
+          - button "Preview Print" [ref=e88] [cursor=pointer]
+          - button "Print" [ref=e89] [cursor=pointer]
 ```

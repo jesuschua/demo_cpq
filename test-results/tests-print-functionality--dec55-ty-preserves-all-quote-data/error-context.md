@@ -1,0 +1,136 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "Kitchen CPQ" [level=1] [ref=e8]
+        - generic [ref=e9]: Improved Workflow
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - generic [ref=e12]: "1"
+          - generic [ref=e13]: Customer
+        - generic [ref=e15]:
+          - generic [ref=e16]: "2"
+          - generic [ref=e17]: Room
+        - generic [ref=e19]:
+          - generic [ref=e20]: "3"
+          - generic [ref=e21]: Products
+        - generic [ref=e23]:
+          - generic [ref=e24]: "4"
+          - generic [ref=e25]: Quote
+      - generic [ref=e26]:
+        - generic [ref=e27]: "Phase 2: Room Configuration"
+        - generic [ref=e28]: Create room and select styling preferences
+  - main [ref=e29]:
+    - generic [ref=e32]:
+      - generic [ref=e33]:
+        - heading "Configure Room" [level=2] [ref=e34]
+        - paragraph [ref=e35]:
+          - text: "Customer:"
+          - generic [ref=e36]: Elite Kitchen Designs
+      - generic [ref=e38]:
+        - heading "Create Room & Configure Auto-Processing" [level=2] [ref=e39]
+        - generic [ref=e40]:
+          - generic [ref=e41]:
+            - generic [ref=e42]: Room Type *
+            - combobox [ref=e43]:
+              - option "Kitchen" [selected]
+              - option "Bathroom"
+              - option "Laundry Room"
+              - option "Pantry"
+              - option "Wet Bar"
+          - generic [ref=e44]:
+            - generic [ref=e45]: Style *
+            - combobox [ref=e46]:
+              - option "Select a style..."
+              - option "Traditional Oak (traditional)" [selected]
+              - option "Modern Euro (modern)"
+              - option "Shaker White (transitional)"
+              - option "Contemporary Walnut (modern)"
+              - option "Farmhouse Gray (traditional)"
+              - option "Industrial Black (modern)"
+              - option "Classic Cherry (traditional)"
+              - option "Minimalist White (modern)"
+              - option "Transitional Maple (transitional)"
+              - option "Luxury Mahogany (traditional)"
+        - generic [ref=e47]:
+          - generic [ref=e48]: Description (Optional)
+          - textbox "Add any special notes or requirements for this room..." [ref=e49]: Comprehensive test kitchen with full feature set
+        - generic [ref=e50]:
+          - generic [ref=e51]: Dimensions (Optional)
+          - generic [ref=e52]:
+            - spinbutton [ref=e54]
+            - spinbutton [ref=e56]
+            - spinbutton [ref=e58]
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - generic [ref=e61]:
+              - heading "Auto-Applied Processings" [level=3] [ref=e62]
+              - paragraph [ref=e63]: These processings will be automatically applied to all products in this room
+            - button "Hide Processings" [active] [ref=e64] [cursor=pointer]
+          - generic [ref=e67]:
+            - generic [ref=e68] [cursor=pointer]:
+              - checkbox "Dark Stain Apply dark walnut stain finish 15% of base price" [ref=e69]
+              - generic [ref=e70] [cursor=pointer]:
+                - heading "Dark Stain" [level=4] [ref=e71] [cursor=pointer]
+                - paragraph [ref=e72] [cursor=pointer]: Apply dark walnut stain finish
+                - paragraph [ref=e73] [cursor=pointer]: 15% of base price
+            - generic [ref=e74] [cursor=pointer]:
+              - checkbox "Medium Stain Apply medium oak stain finish 10% of base price" [ref=e75]
+              - generic [ref=e76] [cursor=pointer]:
+                - heading "Medium Stain" [level=4] [ref=e77] [cursor=pointer]
+                - paragraph [ref=e78] [cursor=pointer]: Apply medium oak stain finish
+                - paragraph [ref=e79] [cursor=pointer]: 10% of base price
+            - generic [ref=e80] [cursor=pointer]:
+              - checkbox "White Paint Custom white paint finish 20% of base price" [ref=e81]
+              - generic [ref=e82] [cursor=pointer]:
+                - heading "White Paint" [level=4] [ref=e83] [cursor=pointer]
+                - paragraph [ref=e84] [cursor=pointer]: Custom white paint finish
+                - paragraph [ref=e85] [cursor=pointer]: 20% of base price
+            - generic [ref=e86] [cursor=pointer]:
+              - checkbox "Custom Paint Color Custom color paint finish 25% of base price" [ref=e87]
+              - generic [ref=e88] [cursor=pointer]:
+                - heading "Custom Paint Color" [level=4] [ref=e89] [cursor=pointer]
+                - paragraph [ref=e90] [cursor=pointer]: Custom color paint finish
+                - paragraph [ref=e91] [cursor=pointer]: 25% of base price
+            - generic [ref=e92] [cursor=pointer]:
+              - checkbox "Install Knobs Install cabinet knobs $8.00 per unit" [ref=e93]
+              - generic [ref=e94] [cursor=pointer]:
+                - heading "Install Knobs" [level=4] [ref=e95] [cursor=pointer]
+                - paragraph [ref=e96] [cursor=pointer]: Install cabinet knobs
+                - paragraph [ref=e97] [cursor=pointer]: $8.00 per unit
+            - generic [ref=e98] [cursor=pointer]:
+              - checkbox "Install Pulls Install cabinet pulls $12.00 per unit" [ref=e99]
+              - generic [ref=e100] [cursor=pointer]:
+                - heading "Install Pulls" [level=4] [ref=e101] [cursor=pointer]
+                - paragraph [ref=e102] [cursor=pointer]: Install cabinet pulls
+                - paragraph [ref=e103] [cursor=pointer]: $12.00 per unit
+            - generic [ref=e104] [cursor=pointer]:
+              - checkbox "Install Push-Open Install push-to-open mechanism $35.00 per unit" [ref=e105]
+              - generic [ref=e106] [cursor=pointer]:
+                - heading "Install Push-Open" [level=4] [ref=e107] [cursor=pointer]
+                - paragraph [ref=e108] [cursor=pointer]: Install push-to-open mechanism
+                - paragraph [ref=e109] [cursor=pointer]: $35.00 per unit
+            - generic [ref=e110] [cursor=pointer]:
+              - checkbox "Soft-Close Hinges Upgrade to soft-close hinges $18.00 per unit" [ref=e111]
+              - generic [ref=e112] [cursor=pointer]:
+                - heading "Soft-Close Hinges" [level=4] [ref=e113] [cursor=pointer]
+                - paragraph [ref=e114] [cursor=pointer]: Upgrade to soft-close hinges
+                - paragraph [ref=e115] [cursor=pointer]: $18.00 per unit
+            - generic [ref=e116] [cursor=pointer]:
+              - checkbox "Full Extension Slides Upgrade to full extension drawer slides $28.00 per unit" [ref=e117]
+              - generic [ref=e118] [cursor=pointer]:
+                - heading "Full Extension Slides" [level=4] [ref=e119] [cursor=pointer]
+                - paragraph [ref=e120] [cursor=pointer]: Upgrade to full extension drawer slides
+                - paragraph [ref=e121] [cursor=pointer]: $28.00 per unit
+        - button "Create Room & Start Quote" [ref=e123] [cursor=pointer]
+      - button "← Back to Customer" [ref=e125] [cursor=pointer]
+    - generic [ref=e128]:
+      - generic [ref=e130]: Phase 2 of 4
+      - generic [ref=e133]:
+        - button "🏠 Main" [ref=e134] [cursor=pointer]
+        - button "💾 Save Draft" [ref=e135] [cursor=pointer]
+        - button "← Back" [ref=e136] [cursor=pointer]
+```

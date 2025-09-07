@@ -1,0 +1,226 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "Kitchen CPQ" [level=1] [ref=e8]
+        - generic [ref=e9]: Improved Workflow
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - generic [ref=e12]: "1"
+          - generic [ref=e13]: Customer
+        - generic [ref=e15]:
+          - generic [ref=e16]: "2"
+          - generic [ref=e17]: Room
+        - generic [ref=e19]:
+          - generic [ref=e20]: "3"
+          - generic [ref=e21]: Products
+        - generic [ref=e23]:
+          - generic [ref=e24]: "4"
+          - generic [ref=e25]: Quote
+      - generic [ref=e26]:
+        - generic [ref=e27]: "Phase 3: Product Configuration"
+        - generic [ref=e28]: Select products that inherit room styling
+  - main [ref=e29]:
+    - generic [ref=e30]:
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - heading "Configure Products" [level=2] [ref=e34]
+          - paragraph [ref=e35]:
+            - text: "Room:"
+            - generic [ref=e36]: Kitchen
+            - text: "| Front Model:"
+            - generic [ref=e37]: Traditional Oak
+        - generic [ref=e38]:
+          - generic [ref=e40]:
+            - generic [ref=e42]:
+              - generic [ref=e43]:
+                - heading "Traditional Oak" [level=2] [ref=e44]
+                - paragraph [ref=e45]: traditional style
+              - generic [ref=e46]:
+                - combobox [ref=e47]:
+                  - option "All Products" [selected]
+                  - option "Cabinet"
+                  - option "Hardware"
+                  - option "Countertop"
+                  - option "Appliance"
+                  - option "Accessory"
+                - button "Change Model" [ref=e48] [cursor=pointer]
+            - generic [ref=e49]:
+              - generic [ref=e50]:
+                - heading "Available Products (19)" [level=3] [ref=e51]
+                - paragraph [ref=e52]: Click on products to add them to your quote
+              - generic [ref=e54]:
+                - generic [ref=e55] [cursor=pointer]:
+                  - generic [ref=e56] [cursor=pointer]:
+                    - generic [ref=e57] [cursor=pointer]:
+                      - heading "12\" Base Cabinet" [level=4] [ref=e58] [cursor=pointer]
+                      - paragraph [ref=e59] [cursor=pointer]: cabinet
+                    - paragraph [ref=e61] [cursor=pointer]: $285.00
+                  - generic [ref=e65] [cursor=pointer]: Available
+                - generic [ref=e66] [cursor=pointer]:
+                  - generic [ref=e67] [cursor=pointer]:
+                    - generic [ref=e68] [cursor=pointer]:
+                      - heading "15\" Base Cabinet" [level=4] [ref=e69] [cursor=pointer]
+                      - paragraph [ref=e70] [cursor=pointer]: cabinet
+                    - paragraph [ref=e72] [cursor=pointer]: $315.00
+                  - generic [ref=e76] [cursor=pointer]: Available
+                - generic [ref=e77] [cursor=pointer]:
+                  - generic [ref=e78] [cursor=pointer]:
+                    - generic [ref=e79] [cursor=pointer]:
+                      - heading "18\" Base Cabinet" [level=4] [ref=e80] [cursor=pointer]
+                      - paragraph [ref=e81] [cursor=pointer]: cabinet
+                    - paragraph [ref=e83] [cursor=pointer]: $345.00
+                  - generic [ref=e87] [cursor=pointer]: 21d
+                - generic [ref=e88] [cursor=pointer]:
+                  - generic [ref=e89] [cursor=pointer]:
+                    - generic [ref=e90] [cursor=pointer]:
+                      - heading "21\" Base Cabinet" [level=4] [ref=e91] [cursor=pointer]
+                      - paragraph [ref=e92] [cursor=pointer]: cabinet
+                    - paragraph [ref=e94] [cursor=pointer]: $375.00
+                  - generic [ref=e98] [cursor=pointer]: Available
+                - generic [ref=e99] [cursor=pointer]:
+                  - generic [ref=e100] [cursor=pointer]:
+                    - generic [ref=e101] [cursor=pointer]:
+                      - heading "24\" Base Cabinet" [level=4] [ref=e102] [cursor=pointer]
+                      - paragraph [ref=e103] [cursor=pointer]: cabinet
+                    - paragraph [ref=e105] [cursor=pointer]: $395.00
+                  - generic [ref=e109] [cursor=pointer]: Available
+                - generic [ref=e110] [cursor=pointer]:
+                  - generic [ref=e111] [cursor=pointer]:
+                    - generic [ref=e112] [cursor=pointer]:
+                      - heading "12\" Wall Cabinet" [level=4] [ref=e113] [cursor=pointer]
+                      - paragraph [ref=e114] [cursor=pointer]: cabinet
+                    - paragraph [ref=e116] [cursor=pointer]: $225.00
+                  - generic [ref=e120] [cursor=pointer]: Available
+                - generic [ref=e121] [cursor=pointer]:
+                  - generic [ref=e122] [cursor=pointer]:
+                    - generic [ref=e123] [cursor=pointer]:
+                      - heading "15\" Wall Cabinet" [level=4] [ref=e124] [cursor=pointer]
+                      - paragraph [ref=e125] [cursor=pointer]: cabinet
+                    - paragraph [ref=e127] [cursor=pointer]: $245.00
+                  - generic [ref=e131] [cursor=pointer]: Available
+                - generic [ref=e132] [cursor=pointer]:
+                  - generic [ref=e133] [cursor=pointer]:
+                    - generic [ref=e134] [cursor=pointer]:
+                      - heading "18\" Wall Cabinet" [level=4] [ref=e135] [cursor=pointer]
+                      - paragraph [ref=e136] [cursor=pointer]: cabinet
+                    - paragraph [ref=e138] [cursor=pointer]: $265.00
+                  - generic [ref=e142] [cursor=pointer]: 28d
+                - generic [ref=e143] [cursor=pointer]:
+                  - generic [ref=e144] [cursor=pointer]:
+                    - generic [ref=e145] [cursor=pointer]:
+                      - heading "24\" Pantry Cabinet" [level=4] [ref=e146] [cursor=pointer]
+                      - paragraph [ref=e147] [cursor=pointer]: cabinet
+                    - paragraph [ref=e149] [cursor=pointer]: $685.00
+                  - generic [ref=e153] [cursor=pointer]: Available
+                - generic [ref=e154] [cursor=pointer]:
+                  - generic [ref=e155] [cursor=pointer]:
+                    - generic [ref=e156] [cursor=pointer]:
+                      - heading "36\" Corner Base" [level=4] [ref=e157] [cursor=pointer]
+                      - paragraph [ref=e158] [cursor=pointer]: cabinet
+                    - paragraph [ref=e160] [cursor=pointer]: $485.00
+                  - generic [ref=e164] [cursor=pointer]: 35d
+                - generic [ref=e165] [cursor=pointer]:
+                  - generic [ref=e166] [cursor=pointer]:
+                    - generic [ref=e167] [cursor=pointer]:
+                      - heading "Bronze Cabinet Knob" [level=4] [ref=e168] [cursor=pointer]
+                      - paragraph [ref=e169] [cursor=pointer]: hardware
+                    - paragraph [ref=e171] [cursor=pointer]: $8.50
+                  - generic [ref=e175] [cursor=pointer]: Available
+                - generic [ref=e176] [cursor=pointer]:
+                  - generic [ref=e177] [cursor=pointer]:
+                    - generic [ref=e178] [cursor=pointer]:
+                      - heading "Bronze Cabinet Pull" [level=4] [ref=e179] [cursor=pointer]
+                      - paragraph [ref=e180] [cursor=pointer]: hardware
+                    - paragraph [ref=e182] [cursor=pointer]: $12.75
+                  - generic [ref=e186] [cursor=pointer]: Available
+                - generic [ref=e187] [cursor=pointer]:
+                  - generic [ref=e188] [cursor=pointer]:
+                    - generic [ref=e189] [cursor=pointer]:
+                      - heading "European Hinge" [level=4] [ref=e190] [cursor=pointer]
+                      - paragraph [ref=e191] [cursor=pointer]: hardware
+                    - paragraph [ref=e193] [cursor=pointer]: $4.25
+                  - generic [ref=e197] [cursor=pointer]: Available
+                - generic [ref=e198] [cursor=pointer]:
+                  - generic [ref=e199] [cursor=pointer]:
+                    - generic [ref=e200] [cursor=pointer]:
+                      - heading "Carrara Quartz" [level=4] [ref=e201] [cursor=pointer]
+                      - paragraph [ref=e202] [cursor=pointer]: countertop
+                    - paragraph [ref=e204] [cursor=pointer]: $65.00
+                  - generic [ref=e208] [cursor=pointer]: Available
+                - generic [ref=e209] [cursor=pointer]:
+                  - generic [ref=e210] [cursor=pointer]:
+                    - generic [ref=e211] [cursor=pointer]:
+                      - heading "Black Granite" [level=4] [ref=e212] [cursor=pointer]
+                      - paragraph [ref=e213] [cursor=pointer]: countertop
+                    - paragraph [ref=e215] [cursor=pointer]: $55.00
+                  - generic [ref=e219] [cursor=pointer]: Available
+                - generic [ref=e220] [cursor=pointer]:
+                  - generic [ref=e221] [cursor=pointer]:
+                    - generic [ref=e222] [cursor=pointer]:
+                      - heading "Built-in Dishwasher" [level=4] [ref=e223] [cursor=pointer]
+                      - paragraph [ref=e224] [cursor=pointer]: appliance
+                    - paragraph [ref=e226] [cursor=pointer]: $895.00
+                  - generic [ref=e230] [cursor=pointer]: Available
+                - generic [ref=e231] [cursor=pointer]:
+                  - generic [ref=e232] [cursor=pointer]:
+                    - generic [ref=e233] [cursor=pointer]:
+                      - heading "Gas Range" [level=4] [ref=e234] [cursor=pointer]
+                      - paragraph [ref=e235] [cursor=pointer]: appliance
+                    - paragraph [ref=e237] [cursor=pointer]: $1285.00
+                  - generic [ref=e241] [cursor=pointer]: 14d
+                - generic [ref=e242] [cursor=pointer]:
+                  - generic [ref=e243] [cursor=pointer]:
+                    - generic [ref=e244] [cursor=pointer]:
+                      - heading "Lazy Susan" [level=4] [ref=e245] [cursor=pointer]
+                      - paragraph [ref=e246] [cursor=pointer]: accessory
+                    - paragraph [ref=e248] [cursor=pointer]: $85.00
+                  - generic [ref=e252] [cursor=pointer]: Available
+                - generic [ref=e253] [cursor=pointer]:
+                  - generic [ref=e254] [cursor=pointer]:
+                    - generic [ref=e255] [cursor=pointer]:
+                      - heading "Soft-Close Drawer Slides" [level=4] [ref=e256] [cursor=pointer]
+                      - paragraph [ref=e257] [cursor=pointer]: accessory
+                    - paragraph [ref=e259] [cursor=pointer]: $22.00
+                  - generic [ref=e263] [cursor=pointer]: Available
+          - generic [ref=e264]:
+            - generic [ref=e265]:
+              - heading "Room Configuration" [level=3] [ref=e266]
+              - generic [ref=e267]:
+                - paragraph [ref=e268]:
+                  - generic [ref=e269]: "Room:"
+                  - generic [ref=e270]: Kitchen
+                - paragraph [ref=e271]:
+                  - generic [ref=e272]: "Front Model:"
+                  - generic [ref=e273]: Traditional Oak
+                - paragraph [ref=e274]:
+                  - generic [ref=e275]: "Style:"
+                  - generic [ref=e276]: traditional
+                - paragraph [ref=e277]: All products inherit this room's styling
+            - generic [ref=e278]:
+              - heading "Selected Products" [level=3] [ref=e279]
+              - generic [ref=e280]:
+                - paragraph [ref=e281]:
+                  - generic [ref=e282]: "Items:"
+                  - generic [ref=e283]: "0"
+                - paragraph [ref=e284]:
+                  - generic [ref=e285]: "Total Value:"
+                  - generic [ref=e286]: $0.00
+        - button "← Back to Room Setup" [ref=e288] [cursor=pointer]
+      - generic [ref=e289]:
+        - heading "Selected Products" [level=3] [ref=e290]:
+          - img [ref=e291]
+          - text: Selected Products
+        - generic [ref=e293]:
+          - img [ref=e294]
+          - paragraph [ref=e296]: No products selected
+    - generic [ref=e299]:
+      - generic [ref=e301]: Phase 3 of 4
+      - generic [ref=e304]:
+        - button "🏠 Main" [ref=e305] [cursor=pointer]
+        - button "💾 Save Draft" [ref=e306] [cursor=pointer]
+        - button "← Back" [ref=e307] [cursor=pointer]
+```

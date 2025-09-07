@@ -1,0 +1,54 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading "Kitchen CPQ" [level=1] [ref=e8]
+  - main [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e13] [cursor=pointer]:
+          - heading "Customers" [level=2] [ref=e14] [cursor=pointer]
+          - generic [ref=e15] [cursor=pointer]:
+            - generic [ref=e16] [cursor=pointer]: "5"
+            - img [ref=e17] [cursor=pointer]
+        - generic [ref=e20]:
+          - generic [ref=e21] [cursor=pointer]:
+            - heading "John Smith Construction" [level=3] [ref=e22] [cursor=pointer]
+            - paragraph [ref=e23] [cursor=pointer]: "Contract: contract_builder_pro"
+            - paragraph [ref=e24] [cursor=pointer]: 5% discount
+          - generic [ref=e25] [cursor=pointer]:
+            - heading "Elite Kitchen Designs" [level=3] [ref=e26] [cursor=pointer]
+            - paragraph [ref=e27] [cursor=pointer]: "Contract: contract_designer_elite"
+            - paragraph [ref=e28] [cursor=pointer]: 3% discount
+          - generic [ref=e29] [cursor=pointer]:
+            - heading "Mike Johnson (Homeowner)" [level=3] [ref=e30] [cursor=pointer]
+            - paragraph [ref=e31] [cursor=pointer]: "Contract: contract_retail_standard"
+            - paragraph [ref=e32] [cursor=pointer]: 0% discount
+          - generic [ref=e33] [cursor=pointer]:
+            - heading "Premier Remodeling Co" [level=3] [ref=e34] [cursor=pointer]
+            - paragraph [ref=e35] [cursor=pointer]: "Contract: contract_contractor_plus"
+            - paragraph [ref=e36] [cursor=pointer]: 8% discount
+          - generic [ref=e37] [cursor=pointer]:
+            - heading "Sarah Wilson (Homeowner)" [level=3] [ref=e38] [cursor=pointer]
+            - paragraph [ref=e39] [cursor=pointer]: "Contract: contract_retail_standard"
+            - paragraph [ref=e40] [cursor=pointer]: 2% discount
+      - generic [ref=e41]:
+        - generic [ref=e43] [cursor=pointer]:
+          - heading "Saved Quotes" [level=2] [ref=e44] [cursor=pointer]
+          - generic [ref=e45] [cursor=pointer]:
+            - generic [ref=e46] [cursor=pointer]: "0"
+            - img [ref=e47] [cursor=pointer]
+        - paragraph [ref=e50]: Click to view saved quotes
+    - button "Start New Quote" [active] [ref=e52] [cursor=pointer]
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - generic [ref=e56]: "5"
+        - generic [ref=e57]: Customers
+      - generic [ref=e58]:
+        - generic [ref=e59]: "0"
+        - generic [ref=e60]: Quotes
+      - generic [ref=e61]:
+        - generic [ref=e62]: $0
+        - generic [ref=e63]: Total Value
+```

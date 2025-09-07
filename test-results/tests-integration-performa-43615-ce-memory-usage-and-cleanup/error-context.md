@@ -1,0 +1,77 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "Kitchen CPQ" [level=1] [ref=e8]
+        - generic [ref=e9]: Improved Workflow
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - generic [ref=e12]: "1"
+          - generic [ref=e13]: Customer
+        - generic [ref=e15]:
+          - generic [ref=e16]: "2"
+          - generic [ref=e17]: Room
+        - generic [ref=e19]:
+          - generic [ref=e20]: "3"
+          - generic [ref=e21]: Products
+        - generic [ref=e23]:
+          - generic [ref=e24]: "4"
+          - generic [ref=e25]: Quote
+      - generic [ref=e26]:
+        - generic [ref=e27]: "Phase 4: Quote Finalization"
+        - generic [ref=e28]: Review, adjust discounts, and finalize quote
+  - main [ref=e29]:
+    - generic [ref=e32]:
+      - generic [ref=e33]:
+        - heading "Finalize Quote" [level=2] [ref=e34]
+        - paragraph [ref=e35]: Review and configure final quote details
+      - generic [ref=e36]:
+        - generic [ref=e39] [cursor=pointer]:
+          - generic [ref=e40] [cursor=pointer]:
+            - generic [ref=e41] [cursor=pointer]:
+              - heading "12\" Base Cabinet" [level=3] [ref=e42] [cursor=pointer]
+              - paragraph [ref=e43] [cursor=pointer]: cabinet
+            - button "✕" [ref=e44] [cursor=pointer]
+          - generic [ref=e45] [cursor=pointer]:
+            - generic [ref=e46] [cursor=pointer]: "Quantity:"
+            - generic [ref=e47] [cursor=pointer]:
+              - button "−" [ref=e48] [cursor=pointer]
+              - generic [ref=e49] [cursor=pointer]: "1"
+              - button "+" [ref=e50] [cursor=pointer]
+          - generic [ref=e51] [cursor=pointer]:
+            - paragraph [ref=e52] [cursor=pointer]: $285.00 base
+            - paragraph [ref=e53] [cursor=pointer]: $285.00 each
+            - paragraph [ref=e54] [cursor=pointer]: $285.00 total
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - heading "Processing Options" [level=3] [ref=e57]
+            - paragraph [ref=e58]: Select a product to configure processings
+          - paragraph [ref=e61]: Click on a product card to view processing options
+        - generic [ref=e62]:
+          - heading "Quote Summary" [level=3] [ref=e63]
+          - generic [ref=e64]:
+            - generic [ref=e65]:
+              - generic [ref=e66]: "Subtotal:"
+              - generic [ref=e67]: $285.00
+            - generic [ref=e68]:
+              - generic [ref=e69]: "Customer Discount (3%):"
+              - generic [ref=e70]: "-$0.00"
+            - text: "0"
+            - separator [ref=e71]
+            - generic [ref=e72]:
+              - generic [ref=e73]: "Final Total:"
+              - generic [ref=e74]: $276.45
+    - generic [ref=e77]:
+      - generic [ref=e79]: Phase 4 of 4
+      - generic [ref=e82]:
+        - button "🏠 Main" [ref=e83] [cursor=pointer]
+        - button "💾 Save Draft" [ref=e84] [cursor=pointer]
+        - button "← Back" [ref=e85] [cursor=pointer]
+        - generic [ref=e86]:
+          - button "Save & Return" [ref=e87] [cursor=pointer]
+          - button "Preview Print" [ref=e88] [cursor=pointer]
+          - button "Print" [ref=e89] [cursor=pointer]
+```

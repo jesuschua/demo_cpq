@@ -14,7 +14,7 @@ test.describe('Kitchen CPQ - Working Tests', () => {
     
     // Test 3: Can select customer
     await page.click('text=Elite Kitchen Designs');
-    await expect(page.locator('h2:has-text("Create Room & Start Quote")')).toBeVisible();
+    await expect(page.locator('button:has-text("Create Room & Start Quote")')).toBeVisible();
     console.log('✅ Customer selected, room creation available');
     
     // Test 4: Check what's needed to enable the button
