@@ -53,6 +53,7 @@ const ImprovedRoomManager: React.FC<ImprovedRoomManagerProps> = ({
       name: newRoom.type,
       description: newRoom.description,
       frontModelId: newRoom.frontModelId,
+      activatedProcessings: [], // Initialize with empty array - can be configured later
       dimensions: newRoom.dimensions.width > 0 ? newRoom.dimensions : undefined
     };
 

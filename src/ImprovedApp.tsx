@@ -3,7 +3,7 @@ import { Quote, Customer, Room } from './types';
 import { customers, models, products, processings, processingRules, productDependencies } from './data/sampleData';
 import MinimalDashboard from './components/MinimalDashboard';
 import CustomerSelector from './components/CustomerSelector';
-import ImprovedRoomManager from './components/ImprovedRoomManager';
+import EnhancedRoomManager from './components/EnhancedRoomManager';
 import CleanProductCatalog from './components/CleanProductCatalog';
 import LiveProcessingProductManager from './components/LiveProcessingProductManager';
 
@@ -199,14 +199,49 @@ function ImprovedApp() {
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
+    // Apply room-level inherited processings
+    const inheritedProcessings = workflow.room.activatedProcessings
+      .map(processingId => {
+        const processing = processings.find(p => p.id === processingId);
+        if (!processing) return null;
+        
+        // Check if this processing is applicable to this product category
+        if (!processing.applicableProductCategories.includes(product.category)) {
+          return null;
+        }
+
+        // Calculate processing price
+        let calculatedPrice = 0;
+        if (processing.pricingType === 'percentage') {
+          calculatedPrice = product.basePrice * processing.price;
+        } else if (processing.pricingType === 'per_unit') {
+          calculatedPrice = processing.price;
+        } else if (processing.pricingType === 'per_dimension' && product.dimensions) {
+          // Simple calculation for per_dimension - could be enhanced with actual formula parsing
+          calculatedPrice = processing.price * (product.dimensions.width || 1);
+        }
+
+        return {
+          processingId,
+          calculatedPrice,
+          isInherited: true,
+          appliedDate: new Date().toISOString()
+        };
+      })
+      .filter(Boolean) as any[];
+
+    // Calculate total price with inherited processings
+    const processingTotal = inheritedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
+    const totalPrice = (product.basePrice + processingTotal) * quantity;
+
     const newItem = {
       id: Date.now().toString(),
       productId,
       roomId: workflow.room.id,
       quantity,
-      appliedProcessings: [],
+      appliedProcessings: inheritedProcessings,
       basePrice: product.basePrice,
-      totalPrice: product.basePrice * quantity
+      totalPrice
     };
 
     setWorkflow(prev => ({ 
@@ -496,8 +531,9 @@ function ImprovedApp() {
               </p>
             </div>
 
-            <ImprovedRoomManager
+            <EnhancedRoomManager
               models={models}
+              processings={processings}
               onCreateQuote={handleRoomCreate}
               existingRooms={workflow.room ? [workflow.room] : []}
               onAddRoom={handleRoomCreate}

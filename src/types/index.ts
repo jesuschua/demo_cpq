@@ -77,6 +77,7 @@ export interface Room {
   name: string;
   description: string;
   frontModelId: string; // Determines colors and styles for all products in room
+  activatedProcessings: string[]; // Processing IDs that are automatically applied to all products in this room
   dimensions?: {
     width: number;
     height: number;
@@ -97,6 +98,8 @@ export interface QuoteItem {
   appliedProcessings: {
     processingId: string;
     calculatedPrice: number;
+    isInherited?: boolean; // true if inherited from room, false/undefined if manually added
+    appliedDate?: string;
   }[];
   basePrice: number;
   totalPrice: number;

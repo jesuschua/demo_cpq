@@ -54,8 +54,15 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
         if (item.id === itemId) {
           const processing = getProcessing(processingId);
           const calculatedPrice = processing?.price || 0;
-          const updatedProcessings = [...item.appliedProcessings, { processingId, calculatedPrice }];
-          const newTotalPrice = item.basePrice + calculatedPrice;
+          const newProcessing = { 
+            processingId, 
+            calculatedPrice,
+            isInherited: false, // This is manually added
+            appliedDate: new Date().toISOString()
+          };
+          const updatedProcessings = [...item.appliedProcessings, newProcessing];
+          const processingTotal = updatedProcessings.reduce((sum, proc) => sum + proc.calculatedPrice, 0);
+          const newTotalPrice = (item.basePrice + processingTotal) * item.quantity;
           
           return {
             ...item,
@@ -71,13 +78,24 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
   };
 
   const removeProcessingFromItem = (itemId: string, processingId: string) => {
+    const item = quote.items.find(i => i.id === itemId);
+    if (!item) return;
+    
+    // Check if this is an inherited processing - cannot be removed
+    const processingToRemove = item.appliedProcessings.find(proc => proc.processingId === processingId);
+    if (processingToRemove?.isInherited) {
+      alert('This processing is inherited from the room configuration and cannot be removed individually. To change it, edit the room settings.');
+      return;
+    }
+
     const updatedQuote = {
       ...quote,
       items: quote.items.map(item => {
         if (item.id === itemId) {
           const updatedProcessings = item.appliedProcessings.filter(proc => proc.processingId !== processingId);
-          const removedProcessing = item.appliedProcessings.find(proc => proc.processingId === processingId);
-          const newTotalPrice = item.basePrice - (removedProcessing?.calculatedPrice || 0);
+          // Recalculate total price from base price + remaining processings
+          const processingTotal = updatedProcessings.reduce((sum, proc) => sum + proc.calculatedPrice, 0);
+          const newTotalPrice = (item.basePrice + processingTotal) * item.quantity;
           
           return {
             ...item,
@@ -267,24 +285,44 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
               {/* Applied Processings */}
               {selectedItem.appliedProcessings.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Applied</h4>
+                  <h4 className="font-medium text-gray-900 mb-2">Applied Processings</h4>
                   <div className="space-y-2">
                     {selectedItem.appliedProcessings.map((proc: any) => {
                       const processing = getProcessing(proc.processingId);
+                      const isInherited = proc.isInherited;
                       return (
-                        <div key={proc.processingId} className="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
+                        <div key={proc.processingId} className={`flex justify-between items-center p-3 rounded-lg ${
+                          isInherited ? 'bg-green-50 border border-green-200' : 'bg-blue-50'
+                        }`}>
                           <div>
-                            <p className="font-medium text-blue-900">{processing?.name}</p>
-                            <p className="text-xs text-blue-700">{processing?.description}</p>
+                            <div className="flex items-center space-x-2">
+                              <p className={`font-medium ${isInherited ? 'text-green-900' : 'text-blue-900'}`}>
+                                {processing?.name}
+                              </p>
+                              {isInherited && (
+                                <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                                  Inherited
+                                </span>
+                              )}
+                            </div>
+                            <p className={`text-xs ${isInherited ? 'text-green-700' : 'text-blue-700'}`}>
+                              {processing?.description}
+                            </p>
                             <p className="text-xs text-green-600">
                               +${proc.calculatedPrice.toFixed(2)}
                             </p>
                           </div>
                           <button
                             onClick={() => removeProcessingFromItem(selectedItem.id, proc.processingId)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs"
+                            disabled={isInherited}
+                            className={`px-2 py-1 rounded text-xs ${
+                              isInherited 
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                : 'bg-red-600 hover:bg-red-700 text-white'
+                            }`}
+                            title={isInherited ? 'Inherited processings cannot be removed' : 'Remove processing'}
                           >
-                            Remove
+                            {isInherited ? 'Locked' : 'Remove'}
                           </button>
                         </div>
                       );
