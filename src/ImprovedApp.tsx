@@ -275,14 +275,436 @@ function ImprovedApp() {
     }));
   };
 
-  // Print quote
+  // Print quote - Enhanced professional print functionality
   const printQuote = () => {
+    if (!workflow.quote || !workflow.customer) {
+      alert('No quote available to print.');
+      return;
+    }
+
     try {
-      window.print();
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(generateEnhancedPrintHTML());
+        printWindow.document.close();
+        printWindow.print();
+        printWindow.close();
+      }
     } catch (error) {
       console.error('Print failed:', error);
       alert('Print functionality is not available in this browser.');
     }
+  };
+
+  // Generate enhanced HTML for professional quote printing
+  const generateEnhancedPrintHTML = () => {
+    const quote = workflow.quote!;
+    const customer = workflow.customer!;
+    
+    const getProduct = (productId: string) => products.find(p => p.id === productId);
+    const getModel = (modelId: string) => models.find(m => m.id === modelId);
+    const getProcessing = (processingId: string) => processings.find(p => p.id === processingId);
+    
+    // Group items by room
+    const itemsByRoom = quote.items.reduce((acc, item) => {
+      const roomId = item.roomId;
+      if (!acc[roomId]) {
+        acc[roomId] = [];
+      }
+      acc[roomId].push(item);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Professional Quote - ${quote.quoteNumber || quote.id}</title>
+          <meta charset="UTF-8">
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: 'Arial', sans-serif; 
+              line-height: 1.6; 
+              color: #333; 
+              background: white;
+              font-size: 12px;
+            }
+            .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+            
+            /* Header Styles */
+            .header { 
+              border-bottom: 3px solid #2563eb; 
+              padding-bottom: 20px; 
+              margin-bottom: 30px; 
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+            }
+            .company-info h1 { 
+              font-size: 28px; 
+              font-weight: bold; 
+              color: #2563eb; 
+              margin-bottom: 5px;
+            }
+            .company-info p { color: #666; font-size: 14px; }
+            .quote-info { text-align: right; }
+            .quote-info h2 { 
+              font-size: 24px; 
+              color: #1f2937; 
+              margin-bottom: 10px;
+            }
+            .quote-info p { margin-bottom: 5px; }
+            
+            /* Customer Section */
+            .customer-section { 
+              background-color: #f8fafc; 
+              padding: 20px; 
+              border-radius: 8px; 
+              margin-bottom: 30px; 
+            }
+            .customer-section h3 { 
+              font-size: 18px; 
+              color: #374151; 
+              margin-bottom: 15px;
+              border-bottom: 1px solid #d1d5db;
+              padding-bottom: 5px;
+            }
+            .customer-details { 
+              display: grid; 
+              grid-template-columns: 1fr 1fr; 
+              gap: 15px; 
+            }
+            
+            /* Room Sections */
+            .room-section { 
+              margin-bottom: 40px; 
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
+              overflow: hidden;
+            }
+            .room-header { 
+              background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); 
+              color: white; 
+              padding: 15px 20px; 
+            }
+            .room-header h3 { font-size: 20px; margin-bottom: 5px; }
+            .room-header p { opacity: 0.9; }
+            .room-auto-processings { 
+              background-color: #eff6ff; 
+              padding: 15px 20px; 
+              border-bottom: 1px solid #e5e7eb;
+            }
+            .room-auto-processings h4 { 
+              color: #1e40af; 
+              margin-bottom: 10px;
+              font-size: 14px;
+            }
+            .auto-processing-list { 
+              display: flex; 
+              flex-wrap: wrap; 
+              gap: 8px; 
+            }
+            .auto-processing-tag { 
+              background-color: #dbeafe; 
+              color: #1e40af; 
+              padding: 4px 8px; 
+              border-radius: 4px; 
+              font-size: 11px;
+              font-weight: 500;
+            }
+            
+            /* Product Tables */
+            .products-table { 
+              width: 100%; 
+              border-collapse: collapse; 
+            }
+            .products-table th { 
+              background-color: #f9fafb; 
+              padding: 12px; 
+              text-align: left; 
+              font-weight: 600;
+              border-bottom: 2px solid #e5e7eb;
+              font-size: 11px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            .products-table td { 
+              padding: 12px; 
+              border-bottom: 1px solid #f3f4f6; 
+              vertical-align: top;
+            }
+            .product-row:hover { background-color: #fafafa; }
+            .product-name { font-weight: 600; color: #1f2937; }
+            .product-category { 
+              color: #6b7280; 
+              font-size: 10px; 
+              text-transform: uppercase;
+            }
+            
+            /* Processing Details */
+            .processing-details { 
+              margin-top: 8px; 
+            }
+            .processing-item { 
+              display: flex; 
+              justify-content: space-between; 
+              align-items: center;
+              padding: 4px 0;
+              font-size: 11px;
+            }
+            .processing-inherited { 
+              color: #059669; 
+              font-weight: 500;
+            }
+            .processing-inherited::before { 
+              content: "🏠 "; 
+            }
+            .processing-manual { 
+              color: #7c3aed; 
+              font-weight: 500;
+            }
+            .processing-manual::before { 
+              content: "⚙️ "; 
+            }
+            
+            /* Summary Section */
+            .summary-section { 
+              margin-top: 40px; 
+              background-color: #f8fafc; 
+              padding: 25px; 
+              border-radius: 8px;
+            }
+            .summary-table { 
+              width: 100%; 
+              border-collapse: collapse; 
+            }
+            .summary-table td { 
+              padding: 8px 0; 
+              border-bottom: 1px solid #e5e7eb;
+            }
+            .summary-table .label { font-weight: 600; }
+            .summary-table .value { 
+              text-align: right; 
+              font-weight: 600;
+            }
+            .discount { color: #dc2626; }
+            .total-row { 
+              font-size: 18px; 
+              background-color: #1e40af; 
+              color: white;
+            }
+            .total-row td { 
+              padding: 15px 0; 
+              border: none;
+            }
+            
+            /* Footer */
+            .footer { 
+              margin-top: 40px; 
+              padding-top: 20px; 
+              border-top: 1px solid #e5e7eb; 
+              text-align: center; 
+              color: #6b7280; 
+              font-size: 10px;
+            }
+            
+            /* Print Styles */
+            @media print {
+              body { font-size: 11px; }
+              .container { max-width: none; margin: 0; padding: 10px; }
+              .room-section { page-break-inside: avoid; }
+              .summary-section { page-break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <!-- Header -->
+            <div class="header">
+              <div class="company-info">
+                <h1>Kitchen CPQ Solutions</h1>
+                <p>Professional Kitchen Design & Quote System</p>
+                <p>📧 quotes@kitchencpq.com | 📞 (555) 123-4567</p>
+              </div>
+              <div class="quote-info">
+                <h2>QUOTE</h2>
+                <p><strong>Quote #:</strong> ${quote.quoteNumber || quote.id}</p>
+                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                <p><strong>Valid Until:</strong> ${new Date(quote.expiresAt).toLocaleDateString()}</p>
+                <p><strong>Status:</strong> ${quote.status.toUpperCase()}</p>
+              </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="customer-section">
+              <h3>Customer Information</h3>
+              <div class="customer-details">
+                <div>
+                  <p><strong>Customer:</strong> ${customer.name}</p>
+                  <p><strong>Contract Type:</strong> ${customer.contractId || 'Standard'}</p>
+                </div>
+                <div>
+                  <p><strong>Discount Level:</strong> ${customer.discountPercentage}%</p>
+                  <p><strong>Quote Generated:</strong> ${new Date(quote.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Room-based Product Listing -->
+            ${quote.rooms.map(room => {
+              const roomItems = itemsByRoom[room.id] || [];
+              const roomModel = getModel(room.frontModelId);
+              const roomProcessings = room.activatedProcessings
+                .map(id => getProcessing(id))
+                .filter(Boolean);
+              
+              return `
+                <div class="room-section">
+                  <div class="room-header">
+                    <h3>${room.name}</h3>
+                    <p>Style: ${roomModel?.name || 'Unknown'} (${roomModel?.category || 'N/A'})</p>
+                    ${room.description ? `<p>${room.description}</p>` : ''}
+                  </div>
+                  
+                  ${roomProcessings.length > 0 ? `
+                    <div class="room-auto-processings">
+                      <h4>🏠 Auto-Applied Room Processings</h4>
+                      <div class="auto-processing-list">
+                        ${roomProcessings.map(processing => 
+                          `<span class="auto-processing-tag">${processing?.name || 'Unknown'}</span>`
+                        ).join('')}
+                      </div>
+                      <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                        These processings are automatically applied to all applicable products in this room.
+                      </p>
+                    </div>
+                  ` : ''}
+                  
+                  <table class="products-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 25%;">Product</th>
+                        <th style="width: 20%;">Details</th>
+                        <th style="width: 10%;">Qty</th>
+                        <th style="width: 15%;">Base Price</th>
+                        <th style="width: 20%;">Applied Processings</th>
+                        <th style="width: 10%;">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${roomItems.map(item => {
+                        const product = getProduct(item.productId);
+                        const inheritedProcessings = item.appliedProcessings.filter((ap: any) => ap.isInherited);
+                        const manualProcessings = item.appliedProcessings.filter((ap: any) => !ap.isInherited);
+                        
+                        return `
+                          <tr class="product-row">
+                            <td>
+                              <div class="product-name">${product?.name || 'Unknown Product'}</div>
+                              <div class="product-category">${product?.category || 'N/A'}</div>
+                            </td>
+                            <td>
+                              <div style="font-size: 11px;">
+                                ${product?.description || 'No description'}
+                                ${product?.dimensions ? `<br><strong>Dimensions:</strong> ${product.dimensions.width || 'N/A'}" W × ${product.dimensions.height || 'N/A'}" H × ${product.dimensions.depth || 'N/A'}" D` : ''}
+                              </div>
+                            </td>
+                            <td style="text-align: center; font-weight: 600;">${item.quantity}</td>
+                            <td style="text-align: right;">$${item.basePrice.toFixed(2)}</td>
+                            <td>
+                              <div class="processing-details">
+                                ${inheritedProcessings.map((ap: any) => {
+                                  const processing = getProcessing(ap.processingId);
+                                  return `
+                                    <div class="processing-item">
+                                      <span class="processing-inherited">${processing?.name || 'Unknown'}</span>
+                                      <span>+$${ap.calculatedPrice.toFixed(2)}</span>
+                                    </div>
+                                  `;
+                                }).join('')}
+                                ${manualProcessings.map((ap: any) => {
+                                  const processing = getProcessing(ap.processingId);
+                                  return `
+                                    <div class="processing-item">
+                                      <span class="processing-manual">${processing?.name || 'Unknown'}</span>
+                                      <span>+$${ap.calculatedPrice.toFixed(2)}</span>
+                                    </div>
+                                  `;
+                                }).join('')}
+                                ${item.appliedProcessings.length === 0 ? '<em style="color: #9ca3af;">No processings applied</em>' : ''}
+                              </div>
+                            </td>
+                            <td style="text-align: right; font-weight: 600; color: #1f2937;">$${item.totalPrice.toFixed(2)}</td>
+                          </tr>
+                        `;
+                      }).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              `;
+            }).join('')}
+
+            <!-- Quote Summary -->
+            <div class="summary-section">
+              <h3 style="margin-bottom: 20px; color: #374151;">Quote Summary</h3>
+              <table class="summary-table">
+                <tr>
+                  <td class="label">Subtotal:</td>
+                  <td class="value">$${quote.subtotal.toFixed(2)}</td>
+                </tr>
+                ${quote.contractDiscount > 0 ? `
+                <tr>
+                  <td class="label">Contract Discount (${quote.contractDiscount}%):</td>
+                  <td class="value discount">-$${(quote.subtotal * quote.contractDiscount / 100).toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                ${quote.customerDiscount > 0 ? `
+                <tr>
+                  <td class="label">Customer Discount (${quote.customerDiscount}%):</td>
+                  <td class="value discount">-$${((quote.subtotal - quote.subtotal * quote.contractDiscount / 100) * quote.customerDiscount / 100).toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                ${quote.orderDiscount > 0 ? `
+                <tr>
+                  <td class="label">Order Discount:</td>
+                  <td class="value discount">-$${quote.orderDiscount.toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                <tr class="total-row">
+                  <td class="label">FINAL TOTAL:</td>
+                  <td class="value">$${quote.finalTotal.toFixed(2)}</td>
+                </tr>
+              </table>
+              
+              ${quote.notes ? `
+                <div style="margin-top: 25px;">
+                  <h4 style="color: #374151; margin-bottom: 10px;">Additional Notes:</h4>
+                  <p style="background: white; padding: 15px; border-radius: 4px; border-left: 4px solid #3b82f6;">
+                    ${quote.notes}
+                  </p>
+                </div>
+              ` : ''}
+              
+              ${quote.requiresApproval ? `
+                <div style="margin-top: 25px; background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 4px;">
+                  <strong>⚠️ Management Approval Required:</strong> This quote exceeds $${quote.approvalThreshold.toLocaleString()} and requires management approval before proceeding.
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+              <p><strong>Legend:</strong> 🏠 = Auto-applied from room configuration | ⚙️ = Product-specific processing</p>
+              <p>This quote is valid until ${new Date(quote.expiresAt).toLocaleDateString()}. Terms and conditions apply.</p>
+              <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+              <p style="margin-top: 10px;">Thank you for choosing Kitchen CPQ Solutions!</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
   };
 
   // Dashboard handlers
@@ -808,6 +1230,19 @@ function ImprovedApp() {
                       className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm"
                     >
                       Save & Return
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Show preview in new window
+                        const previewWindow = window.open('', '_blank');
+                        if (previewWindow) {
+                          previewWindow.document.write(generateEnhancedPrintHTML());
+                          previewWindow.document.close();
+                        }
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm"
+                    >
+                      Preview Print
                     </button>
                     <button
                       onClick={printQuote}
