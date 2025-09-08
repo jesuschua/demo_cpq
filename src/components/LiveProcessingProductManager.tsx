@@ -21,6 +21,7 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
   onQuoteUpdate
 }) => {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  
   const getProduct = (productId: string) => products.find(p => p.id === productId);
   const getProcessing = (processingId: string) => processings.find(p => p.id === processingId);
 
@@ -48,124 +49,125 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
   };
 
   const addProcessingToItem = (itemId: string, processingId: string) => {
+    const item = quote.items.find(i => i.id === itemId);
     const processing = getProcessing(processingId);
-    if (!processing) return;
+    if (!item || !processing) return;
 
-    const updatedItems = quote.items.map(item => {
-      if (item.id === itemId) {
-        const product = getProduct(item.productId);
-        if (!product) return item;
+    const calculatedPrice = processing.pricingType === 'percentage' 
+      ? item.basePrice * processing.price
+      : processing.price;
 
-        let calculatedPrice = 0;
-        if (processing.pricingType === 'percentage') {
-          calculatedPrice = product.basePrice * processing.price;
-        } else {
-          calculatedPrice = processing.price;
-        }
+    const appliedProcessing = {
+      processingId,
+      calculatedPrice,
+      appliedAt: new Date().toISOString()
+    };
 
-        const newProcessing = {
-          processingId,
-          calculatedPrice,
-          appliedDate: new Date().toISOString()
-        };
+    const updatedQuote = {
+      ...quote,
+      items: quote.items.map(i => 
+        i.id === itemId 
+          ? { 
+              ...i, 
+              appliedProcessings: [...i.appliedProcessings, appliedProcessing],
+              totalPrice: i.basePrice + [...i.appliedProcessings, appliedProcessing].reduce((sum, ap) => sum + ap.calculatedPrice, 0)
+            }
+          : i
+      )
+    };
 
-        const updatedItem = {
-          ...item,
-          appliedProcessings: [...item.appliedProcessings, newProcessing]
-        };
+    // Recalculate quote totals
+    const subtotal = updatedQuote.items.reduce((sum, item) => sum + (item.totalPrice * item.quantity), 0);
+    const customerDiscountAmount = subtotal * (updatedQuote.customerDiscount / 100);
+    const finalTotal = subtotal - customerDiscountAmount - (updatedQuote.orderDiscount || 0);
 
-        // Recalculate total price
-        const processingTotal = updatedItem.appliedProcessings.reduce((sum: number, ap: any) => sum + ap.calculatedPrice, 0);
-        updatedItem.totalPrice = (product.basePrice + processingTotal) * item.quantity;
+    updatedQuote.subtotal = subtotal;
+    updatedQuote.finalTotal = finalTotal;
 
-        return updatedItem;
-      }
-      return item;
-    });
-
-    recalculateQuote({ ...quote, items: updatedItems });
+    onQuoteUpdate(updatedQuote);
   };
 
   const removeProcessingFromItem = (itemId: string, processingId: string) => {
-    const updatedItems = quote.items.map(item => {
-      if (item.id === itemId) {
-        const product = getProduct(item.productId);
-        if (!product) return item;
+    const item = quote.items.find(i => i.id === itemId);
+    if (!item) return;
 
-        const updatedItem = {
-          ...item,
-          appliedProcessings: item.appliedProcessings.filter((ap: any) => ap.processingId !== processingId)
-        };
+    const updatedProcessings = item.appliedProcessings.filter(ap => ap.processingId !== processingId);
+    
+    const updatedQuote = {
+      ...quote,
+      items: quote.items.map(i => 
+        i.id === itemId 
+          ? { 
+              ...i, 
+              appliedProcessings: updatedProcessings,
+              totalPrice: i.basePrice + updatedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0)
+            }
+          : i
+      )
+    };
 
-        // Recalculate total price
-        const processingTotal = updatedItem.appliedProcessings.reduce((sum: number, ap: any) => sum + ap.calculatedPrice, 0);
-        updatedItem.totalPrice = (product.basePrice + processingTotal) * item.quantity;
+    // Recalculate quote totals
+    const subtotal = updatedQuote.items.reduce((sum, item) => sum + (item.totalPrice * item.quantity), 0);
+    const customerDiscountAmount = subtotal * (updatedQuote.customerDiscount / 100);
+    const finalTotal = subtotal - customerDiscountAmount - (updatedQuote.orderDiscount || 0);
 
-        return updatedItem;
-      }
-      return item;
-    });
+    updatedQuote.subtotal = subtotal;
+    updatedQuote.finalTotal = finalTotal;
 
-    recalculateQuote({ ...quote, items: updatedItems });
+    onQuoteUpdate(updatedQuote);
   };
 
-  const updateQuantity = (itemId: string, newQuantity: number) => {
-    const updatedItems = quote.items.map(item => {
-      if (item.id === itemId) {
-        const product = getProduct(item.productId);
-        if (!product) return item;
+  const updateItemQuantity = (itemId: string, newQuantity: number) => {
+    if (newQuantity <= 0) return;
 
-        const updatedItem = { ...item, quantity: newQuantity };
-        const processingTotal = updatedItem.appliedProcessings.reduce((sum: number, ap: any) => sum + ap.calculatedPrice, 0);
-        updatedItem.totalPrice = (product.basePrice + processingTotal) * newQuantity;
+    const updatedQuote = {
+      ...quote,
+      items: quote.items.map(item => 
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      )
+    };
 
-        return updatedItem;
-      }
-      return item;
-    });
+    // Recalculate quote totals
+    const subtotal = updatedQuote.items.reduce((sum, item) => sum + (item.totalPrice * item.quantity), 0);
+    const customerDiscountAmount = subtotal * (updatedQuote.customerDiscount / 100);
+    const finalTotal = subtotal - customerDiscountAmount - (updatedQuote.orderDiscount || 0);
 
-    recalculateQuote({ ...quote, items: updatedItems });
+    updatedQuote.subtotal = subtotal;
+    updatedQuote.finalTotal = finalTotal;
+
+    onQuoteUpdate(updatedQuote);
   };
 
   const removeItem = (itemId: string) => {
-    const updatedItems = quote.items.filter(item => item.id !== itemId);
-    recalculateQuote({ ...quote, items: updatedItems });
-    if (selectedItemId === itemId) {
-      setSelectedItemId(null);
-    }
-  };
-
-  const recalculateQuote = (updatedQuote: Quote) => {
-    const subtotal = updatedQuote.items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const customerDiscount = subtotal * (updatedQuote.customerDiscount / 100);
-    const orderDiscount = updatedQuote.orderDiscount || 0;
-    const totalDiscount = customerDiscount + orderDiscount;
-    const finalTotal = subtotal - totalDiscount;
-
-    const finalQuote = {
-      ...updatedQuote,
-      orderDiscount,
-      subtotal,
-      totalDiscount,
-      finalTotal
+    const updatedQuote = {
+      ...quote,
+      items: quote.items.filter(item => item.id !== itemId)
     };
 
-    onQuoteUpdate(finalQuote);
+    // Recalculate quote totals
+    const subtotal = updatedQuote.items.reduce((sum, item) => sum + (item.totalPrice * item.quantity), 0);
+    const customerDiscountAmount = subtotal * (updatedQuote.customerDiscount / 100);
+    const finalTotal = subtotal - customerDiscountAmount - (updatedQuote.orderDiscount || 0);
+
+    updatedQuote.subtotal = subtotal;
+    updatedQuote.finalTotal = finalTotal;
+
+    onQuoteUpdate(updatedQuote);
+    setSelectedItemId(null);
   };
 
-  const selectedItem = selectedItemId ? quote.items.find(item => item.id === selectedItemId) : null;
-  const selectedProduct = selectedItem ? getProduct(selectedItem.productId) : null;
-  const availableProcessings = selectedItem ? getAvailableProcessings(selectedItem.productId, selectedItem.appliedProcessings.map((ap: any) => ap.processingId)) : [];
-
-  // Group items by room for room-aware display
+  // Group items by room
   const itemsByRoom = quote.items.reduce((acc, item) => {
     const roomId = item.roomId || 'no-room';
-    if (!acc[roomId]) {
-      acc[roomId] = [];
-    }
+    if (!acc[roomId]) acc[roomId] = [];
     acc[roomId].push(item);
     return acc;
   }, {} as Record<string, typeof quote.items>);
+
+  const selectedItem = quote.items.find(item => item.id === selectedItemId);
+  const availableProcessings = selectedItem 
+    ? getAvailableProcessings(selectedItem.productId, selectedItem.appliedProcessings.map(ap => ap.processingId))
+    : [];
 
   return (
     <div className="flex space-x-6">
@@ -179,123 +181,112 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
           <div className="space-y-6">
             {Object.entries(itemsByRoom).map(([roomId, roomItems]) => {
               const room = rooms.find(r => r.id === roomId);
-              const roomTotal = roomItems.reduce((sum, item) => sum + item.totalPrice, 0);
+              const roomTotal = roomItems.reduce((sum, item) => sum + (item.totalPrice * item.quantity), 0);
 
               return (
                 <div key={roomId} className="bg-white rounded-lg shadow">
-                  {/* Room Header */}
-                  <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                  <div className="p-4 border-b border-gray-200">
                     <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {room ? room.name : 'Unassigned Products'}
-                      </h3>
-                      <span className="text-lg font-bold text-blue-600">
-                        ${roomTotal.toFixed(2)}
-                      </span>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {room?.name || 'Unassigned Products'}
+                        </h3>
+                        {room?.dimensions && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            {room.dimensions.width}" × {room.dimensions.height}" × {room.dimensions.depth}"
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">{roomItems.length} items</p>
+                        <p className="text-lg font-semibold text-green-600">${roomTotal.toFixed(2)}</p>
+                      </div>
                     </div>
-                    {room?.dimensions && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        {room.dimensions.width}" × {room.dimensions.height}" × {room.dimensions.depth}"
-                      </p>
-                    )}
                   </div>
 
-                  {/* Room Products Table */}
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processings</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {roomItems.map((item) => {
-                          const product = getProduct(item.productId);
-                          if (!product) return null;
+                  <div className="p-4 space-y-4">
+                    {roomItems.map((item) => {
+                      const product = getProduct(item.productId);
+                      const isSelected = selectedItemId === item.id;
 
-                          const isSelected = selectedItemId === item.id;
-                          const processingTotal = item.appliedProcessings.reduce((sum: number, ap: any) => sum + ap.calculatedPrice, 0);
-                          const unitPrice = product.basePrice + processingTotal;
-
-                          return (
-                            <tr 
-                              key={item.id} 
-                              className={`${isSelected ? 'bg-blue-50 border-l-4 border-blue-400' : 'hover:bg-gray-50'} cursor-pointer`}
-                              onClick={() => setSelectedItemId(item.id)}
-                            >
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  <div>
-                                    <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                                    <div className="text-sm text-gray-500">{product.category}</div>
+                      return (
+                        <div 
+                          key={item.id}
+                          className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                            isSelected 
+                              ? 'border-blue-500 bg-blue-50 shadow-md' 
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
+                          onClick={() => setSelectedItemId(item.id)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-900">{product?.name}</h4>
+                              <p className="text-sm text-gray-600 mt-1">{product?.description}</p>
+                              
+                              {item.appliedProcessings.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="text-xs text-gray-500 mb-1">Applied Processings:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {item.appliedProcessings.map((ap) => {
+                                      const processing = getProcessing(ap.processingId);
+                                      return (
+                                        <span
+                                          key={ap.processingId}
+                                          className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800"
+                                        >
+                                          {processing?.name} (+${ap.calculatedPrice.toFixed(2)})
+                                        </span>
+                                      );
+                                    })}
                                   </div>
                                 </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="space-y-1">
-                                  {item.appliedProcessings.map((ap: any) => {
-                                    const processing = getProcessing(ap.processingId);
-                                    return processing ? (
-                                      <span key={ap.processingId} className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mr-1">
-                                        {processing.name} (+${ap.calculatedPrice.toFixed(2)})
-                                      </span>
-                                    ) : null;
-                                  })}
-                                  {item.appliedProcessings.length === 0 && (
-                                    <span className="text-gray-400 text-sm">No processings</span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center space-x-2">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      updateQuantity(item.id, item.quantity - 1);
-                                    }}
-                                    className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600"
-                                  >
-                                    -
-                                  </button>
-                                  <span className="w-12 text-center text-sm font-medium">{item.quantity}</span>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      updateQuantity(item.id, item.quantity + 1);
-                                    }}
-                                    className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600"
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                ${unitPrice.toFixed(2)}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                ${item.totalPrice.toFixed(2)}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              )}
+                            </div>
+
+                            <div className="ml-4 text-right">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateItemQuantity(item.id, item.quantity - 1);
+                                  }}
+                                  className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-sm"
+                                >
+                                  -
+                                </button>
+                                <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateItemQuantity(item.id, item.quantity + 1);
+                                  }}
+                                  className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-sm"
+                                >
+                                  +
+                                </button>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     removeItem(item.id);
                                   }}
-                                  className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors"
+                                  className="ml-2 w-6 h-6 rounded-full bg-red-100 hover:bg-red-200 text-red-600 flex items-center justify-center text-sm"
                                 >
-                                  Remove
+                                  ✕
                                 </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                              </div>
+
+                              <div className="text-right">
+                                <p className="text-sm text-gray-600">Base: ${item.basePrice.toFixed(2)}</p>
+                                <p className="text-lg font-semibold text-green-600">
+                                  ${(item.totalPrice * item.quantity).toFixed(2)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -304,16 +295,20 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
         )}
       </div>
 
-      {/* Right Side - Live Processing Panel */}
+      {/* Right Side - Live Processing Pane */}
       <div className="w-96">
-      {selectedItem && selectedProduct && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4 border-b border-gray-200 bg-blue-50">
-            <h3 className="text-lg font-medium text-gray-900">Configure: {selectedProduct.name}</h3>
-            <p className="text-sm text-gray-600">Add processings to customize this product</p>
-          </div>
-          
-          <div className="p-6">
+        {selectedItem ? (
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="mb-4 pb-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Configure Processing</h3>
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <h4 className="font-medium text-blue-900">{getProduct(selectedItem.productId)?.name}</h4>
+                <p className="text-sm text-blue-700 mt-1">
+                  Quantity: {selectedItem.quantity} | Base Price: ${selectedItem.basePrice.toFixed(2)}
+                </p>
+              </div>
+            </div>
+
             {/* Applied Processings */}
             {selectedItem.appliedProcessings.length > 0 && (
               <div className="mb-6">
@@ -401,47 +396,50 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
               </div>
             )}
           </div>
-        </div>
-      )}
-
-      {!selectedItem && (
-        <div className="bg-white rounded-lg shadow p-8 text-center border-2 border-dashed border-gray-200">
-          <div className="max-w-sm mx-auto">
-            <div className="w-12 h-12 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Configure Product Processings</h3>
-            <p className="text-gray-500">Select a product from the room tables to add custom processings and configurations.</p>
-          </div>
-        </div>
-      )}
-
-      {/* Quote Summary */}
-      <div className="bg-white rounded-lg shadow p-6 mt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Quote Summary</h3>
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Subtotal:</span>
-            <span className="font-medium">${quote.subtotal?.toFixed(2) || '0.00'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Customer Discount ({quote.customerDiscount}%):</span>
-            <span className="font-medium text-red-600">-${((quote.subtotal || 0) * (quote.customerDiscount / 100)).toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Order Discount:</span>
-            <span className="font-medium text-red-600">-${(quote.orderDiscount || 0).toFixed(2)}</span>
-          </div>
-          <div className="border-t border-gray-200 pt-2">
-            <div className="flex justify-between text-lg font-semibold">
-              <span>Final Total:</span>
-              <span className="text-green-600">${quote.finalTotal?.toFixed(2) || '0.00'}</span>
+        ) : (
+          <div className="bg-white rounded-lg shadow p-8 text-center border-2 border-dashed border-gray-200">
+            <div className="max-w-sm mx-auto">
+              <div className="w-12 h-12 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Product</h3>
+              <p className="text-gray-600">
+                Click on any product to configure its processings and pricing options.
+              </p>
             </div>
           </div>
+        )}
+
+        {/* Quote Summary */}
+        <div className="bg-white rounded-lg shadow p-6 mt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quote Summary</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Items:</span>
+              <span className="font-medium">{quote.items.length}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Subtotal:</span>
+              <span className="font-medium">${quote.subtotal?.toFixed(2) || '0.00'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Customer Discount ({quote.customerDiscount}%):</span>
+              <span className="font-medium text-red-600">-${((quote.subtotal || 0) * (quote.customerDiscount / 100)).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Order Discount:</span>
+              <span className="font-medium text-red-600">-${(quote.orderDiscount || 0).toFixed(2)}</span>
+            </div>
+            <div className="border-t border-gray-200 pt-2">
+              <div className="flex justify-between text-lg font-semibold">
+                <span>Final Total:</span>
+                <span className="text-green-600">${quote.finalTotal?.toFixed(2) || '0.00'}</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );

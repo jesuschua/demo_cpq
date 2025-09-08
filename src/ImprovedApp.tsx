@@ -1078,6 +1078,11 @@ function ImprovedApp() {
                           </span>
                         )}
                       </div>
+                      {room.description && (
+                        <p className="text-sm text-gray-700 mb-2 italic">
+                          "{room.description}"
+                        </p>
+                      )}
                       <p className="text-sm text-gray-600 mb-1">
                         Style: {roomModel?.name}
                       </p>
@@ -1105,6 +1110,11 @@ function ImprovedApp() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
                       Adding Products to: <span className="text-blue-600">{getCurrentRoom()?.name}</span>
                     </h3>
+                    {getCurrentRoom()?.description && (
+                      <p className="text-sm text-gray-700 mb-2 italic">
+                        Room Description: "{getCurrentRoom()?.description}"
+                      </p>
+                    )}
                     <p className="text-sm text-gray-600">
                       Style: {getCurrentRoomModel()?.name} • Products will inherit this room's configuration
                     </p>
@@ -1423,7 +1433,7 @@ function ImprovedApp() {
                             alert('No products to clear in this room');
                             return;
                           }
-                          if (confirm(`Clear all ${currentRoomProducts.length} products from ${getCurrentRoom()?.name}?`)) {
+                          if (window.confirm(`Clear all ${currentRoomProducts.length} products from ${getCurrentRoom()?.name}?`)) {
                             setWorkflow(prev => ({
                               ...prev,
                               products: prev.products.filter(p => p.roomId !== workflow.currentRoomId)
