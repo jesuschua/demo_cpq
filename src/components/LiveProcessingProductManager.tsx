@@ -305,7 +305,7 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
       </div>
 
       {/* Right Side - Live Processing Panel */}
-      <div className="w-80">
+      <div className="w-96">
       {selectedItem && selectedProduct && (
         <div className="bg-white rounded-lg shadow">
           <div className="p-4 border-b border-gray-200 bg-blue-50">
@@ -318,29 +318,37 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
             {selectedItem.appliedProcessings.length > 0 && (
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Applied Processings</h4>
-                <div className="space-y-2">
-                  {selectedItem.appliedProcessings.map((ap: any) => {
-                    const processing = getProcessing(ap.processingId);
-                    return (
-                      <div key={ap.processingId} className="flex justify-between items-center bg-green-50 px-4 py-3 rounded-lg border border-green-200">
-                        <div>
-                          <span className="text-sm font-medium text-green-900">{processing?.name}</span>
-                          <span className="text-xs text-green-700 ml-2">{processing?.description}</span>
+                <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2 bg-gray-50">
+                  <div className="space-y-2">
+                    {selectedItem.appliedProcessings.map((ap: any) => {
+                      const processing = getProcessing(ap.processingId);
+                      return (
+                        <div key={ap.processingId} className="flex justify-between items-center bg-green-50 px-4 py-3 rounded-lg border border-green-200 hover:bg-green-100 transition-colors">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <h5 className="text-sm font-semibold text-green-900">
+                                {processing?.name}
+                              </h5>
+                              <div className="flex items-center space-x-3">
+                                <span className="text-lg font-bold text-green-700">
+                                  +${ap.calculatedPrice.toFixed(2)}
+                                </span>
+                                <button
+                                  onClick={() => removeProcessingFromItem(selectedItem.id, ap.processingId)}
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 transition-colors"
+                                >
+                                  Remove ✕
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-sm text-green-700 pr-2">
+                              {processing?.description}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-3">
-                          <span className="text-sm font-medium text-green-900">
-                            +${ap.calculatedPrice.toFixed(2)}
-                          </span>
-                          <button
-                            onClick={() => removeProcessingFromItem(selectedItem.id, ap.processingId)}
-                            className="text-red-600 hover:text-red-800 text-sm px-2 py-1 rounded hover:bg-red-50"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
@@ -349,30 +357,40 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
             {availableProcessings.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Available Processings</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {availableProcessings.map((processing) => (
-                    <button
-                      key={processing.id}
-                      onClick={() => addProcessingToItem(selectedItem.id, processing.id)}
-                      className="text-left p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h5 className="text-sm font-medium text-gray-900">{processing.name}</h5>
-                          <p className="text-xs text-gray-600 mt-1">{processing.description}</p>
+                <div className="h-64 overflow-y-auto border border-gray-200 rounded-lg p-2 bg-gray-50">
+                  <div className="space-y-2">
+                    {availableProcessings.map((processing) => (
+                      <button
+                        key={processing.id}
+                        onClick={() => addProcessingToItem(selectedItem.id, processing.id)}
+                        className="w-full text-left p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 hover:shadow-sm transition-all duration-200 group bg-white"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <h5 className="text-sm font-semibold text-gray-900 group-hover:text-blue-900">
+                                {processing.name}
+                              </h5>
+                              <div className="flex items-center space-x-2 ml-4">
+                                <span className="text-lg font-bold text-green-600">
+                                  {processing.pricingType === 'percentage' 
+                                    ? `+${(processing.price * 100).toFixed(0)}%`
+                                    : `+$${processing.price.toFixed(2)}`
+                                  }
+                                </span>
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 group-hover:bg-blue-200">
+                                  Add +
+                                </span>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600 group-hover:text-gray-700 pr-2">
+                              {processing.description}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right ml-2">
-                          <p className="text-sm font-medium text-green-600">
-                            {processing.pricingType === 'percentage' 
-                              ? `${(processing.price * 100).toFixed(0)}%`
-                              : `$${processing.price.toFixed(2)}`
-                            }
-                          </p>
-                          <p className="text-xs text-gray-500">{processing.pricingType.replace('_', ' ')}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -387,8 +405,16 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
       )}
 
       {!selectedItem && (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-500">Select a product from the table above to configure its processings.</p>
+        <div className="bg-white rounded-lg shadow p-8 text-center border-2 border-dashed border-gray-200">
+          <div className="max-w-sm mx-auto">
+            <div className="w-12 h-12 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Configure Product Processings</h3>
+            <p className="text-gray-500">Select a product from the room tables to add custom processings and configurations.</p>
+          </div>
         </div>
       )}
 

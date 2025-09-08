@@ -77,12 +77,6 @@ const SimplifiedProductCatalog: React.FC<SimplifiedProductCatalogProps> = ({
                 <h2 className="text-lg font-semibold text-gray-900">{selectedModel.name}</h2>
                 <p className="text-sm text-gray-600 capitalize">{selectedModel.category} style</p>
               </div>
-              <button
-                onClick={() => onModelSelect(null!)}
-                className="text-blue-600 hover:text-blue-800 text-sm"
-              >
-                Change Model
-              </button>
             </div>
           </div>
 

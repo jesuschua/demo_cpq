@@ -81,12 +81,6 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
                     </option>
                   ))}
                 </select>
-                <button
-                  onClick={() => onModelSelect(null!)}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
-                >
-                  Change Model
-                </button>
               </div>
             </div>
           </div>
