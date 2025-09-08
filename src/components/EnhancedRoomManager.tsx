@@ -7,6 +7,9 @@ interface EnhancedRoomManagerProps {
   onCreateQuote: (room: Room) => void;
   existingRooms: Room[];
   onAddRoom: (room: Room) => void;
+  onEditRoom?: (room: Room) => void;
+  onSelectRoom?: (roomId: string) => void;
+  currentRoomId?: string | null;
 }
 
 const ROOM_TYPES = ['Kitchen', 'Bathroom', 'Laundry Room', 'Pantry', 'Wet Bar'];
@@ -16,10 +19,14 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
   processings,
   onCreateQuote,
   existingRooms,
-  onAddRoom
+  onAddRoom,
+  onEditRoom,
+  onSelectRoom,
+  currentRoomId
 }) => {
   const [showCreateForm, setShowCreateForm] = useState(existingRooms.length === 0);
   const [showProcessingConfig, setShowProcessingConfig] = useState(false);
+  const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
   const [newRoom, setNewRoom] = useState(() => {
     return {
       type: 'Kitchen',
@@ -34,7 +41,7 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
     if (!newRoom.type || !newRoom.frontModelId) return;
 
     const room: Room = {
-      id: Date.now().toString(),
+      id: editingRoomId || Date.now().toString(),
       name: newRoom.type,
       description: newRoom.description,
       frontModelId: newRoom.frontModelId,
@@ -42,15 +49,21 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
       dimensions: newRoom.dimensions.width > 0 ? newRoom.dimensions : undefined
     };
 
-    if (existingRooms.length === 0) {
+    if (editingRoomId) {
+      // Editing existing room
+      onEditRoom?.(room);
+    } else if (existingRooms.length === 0) {
+      // Creating first room
       onCreateQuote(room);
     } else {
+      // Adding additional room
       onAddRoom(room);
     }
 
+    // Reset form
     setShowCreateForm(false);
     setShowProcessingConfig(false);
-    // Reset form
+    setEditingRoomId(null);
     setNewRoom({
       type: 'Kitchen',
       description: '',
@@ -58,6 +71,18 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
       activatedProcessings: [],
       dimensions: { width: 0, height: 0, depth: 0 }
     });
+  };
+
+  const handleEditRoom = (room: Room) => {
+    setEditingRoomId(room.id);
+    setNewRoom({
+      type: room.name,
+      description: room.description,
+      frontModelId: room.frontModelId,
+      activatedProcessings: room.activatedProcessings,
+      dimensions: room.dimensions || { width: 0, height: 0, depth: 0 }
+    });
+    setShowCreateForm(true);
   };
 
   const toggleProcessing = (processingId: string) => {
@@ -100,10 +125,25 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
                 .filter(Boolean);
               
               return (
-                <div key={room.id} className="border border-gray-200 rounded-lg p-4">
+                <div 
+                  key={room.id} 
+                  className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                    currentRoomId === room.id 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => onSelectRoom?.(room.id)}
+                >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{room.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-gray-900">{room.name}</h3>
+                        {currentRoomId === room.id && (
+                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                            Active
+                          </span>
+                        )}
+                      </div>
                       {room.description && (
                         <p className="text-sm text-gray-600 mt-1">{room.description}</p>
                       )}
@@ -131,12 +171,30 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
                         </p>
                       )}
                     </div>
-                    <button
-                      onClick={() => setShowCreateForm(true)}
-                      className="text-blue-600 hover:text-blue-800 text-sm"
-                    >
-                      Edit Room
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditRoom(room);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectRoom?.(room.id);
+                        }}
+                        className={`text-sm px-2 py-1 rounded ${
+                          currentRoomId === room.id
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {currentRoomId === room.id ? 'Selected' : 'Select'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -156,7 +214,12 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
       {showCreateForm && (
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {existingRooms.length === 0 ? 'Create Room & Configure Auto-Processing' : 'Add New Room'}
+            {editingRoomId 
+              ? 'Edit Room' 
+              : existingRooms.length === 0 
+                ? 'Create Room & Configure Auto-Processing' 
+                : 'Add New Room'
+            }
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
