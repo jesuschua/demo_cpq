@@ -35,6 +35,9 @@ function SimplifiedApp() {
   };
 
   const handleCreateQuote = (initialRoom: Room) => {
+    alert('🔧 handleCreateQuote called with room: ' + JSON.stringify(initialRoom));
+    console.log('🔧 handleCreateQuote called with room:', initialRoom);
+    
     const newQuote: Quote = {
       id: Date.now().toString(),
       customerId: state.selectedCustomer!.id,
@@ -53,6 +56,19 @@ function SimplifiedApp() {
       approvalThreshold: 50000
     };
 
+    // Set the selected model based on the room's frontModelId
+    const roomModel = models.find(m => m.id === initialRoom.frontModelId);
+    console.log('🔧 Looking for model with ID:', initialRoom.frontModelId);
+    console.log('🔧 Available models:', models.map(m => ({ id: m.id, name: m.name })));
+    console.log('🔧 Found room model:', roomModel);
+    
+    if (roomModel) {
+      setSelectedModel(roomModel);
+      console.log('🔧 Selected model set to:', roomModel.name);
+    } else {
+      console.log('❌ No model found for frontModelId:', initialRoom.frontModelId);
+    }
+
     setState(prev => ({ 
       ...prev, 
       currentQuote: newQuote,
@@ -69,14 +85,30 @@ function SimplifiedApp() {
       rooms: [...state.currentQuote.rooms, room]
     };
     
+    // Set the selected model based on the room's frontModelId
+    const roomModel = models.find(m => m.id === room.frontModelId);
+    if (roomModel) {
+      setSelectedModel(roomModel);
+    }
+    
     setState(prev => ({ ...prev, currentQuote: updatedQuote }));
   };
 
   const handleAddProductToQuote = (productId: string, quantity: number = 1) => {
-    if (!state.currentQuote || !selectedRoom) return;
+    console.log('🔧 handleAddProductToQuote called:', { productId, quantity, hasQuote: !!state.currentQuote, selectedRoom: !!selectedRoom });
+    
+    if (!state.currentQuote || !selectedRoom) {
+      console.log('❌ Missing currentQuote or selectedRoom');
+      return;
+    }
 
     const product = products.find(p => p.id === productId);
-    if (!product) return;
+    if (!product) {
+      console.log('❌ Product not found:', productId);
+      return;
+    }
+
+    console.log('🔧 Adding product to quote:', product.name);
 
     const newItem = {
       id: Date.now().toString(),
@@ -93,6 +125,10 @@ function SimplifiedApp() {
     
     // Recalculate totals
     recalculateQuote(updatedQuote);
+    
+    // Update state with the new quote
+    setState(prev => ({ ...prev, currentQuote: updatedQuote }));
+    console.log('✅ Product added to quote, new item count:', updatedItems.length);
   };
 
   const recalculateQuote = (quote: Quote) => {

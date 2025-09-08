@@ -35,7 +35,13 @@ const RoomManager: React.FC<RoomManagerProps> = ({
   });
 
   const handleCreateRoom = () => {
-    if (!newRoom.name || !newRoom.frontModelId) return;
+    alert('🔧 RoomManager handleCreateRoom called with newRoom: ' + JSON.stringify(newRoom));
+    console.log('🔧 RoomManager handleCreateRoom called with newRoom:', newRoom);
+    
+    if (!newRoom.name || !newRoom.frontModelId) {
+      console.log('❌ Room validation failed:', { name: newRoom.name, frontModelId: newRoom.frontModelId });
+      return;
+    }
 
     const room: Room = {
       id: Date.now().toString(),
@@ -46,11 +52,15 @@ const RoomManager: React.FC<RoomManagerProps> = ({
       dimensions: newRoom.dimensions.width > 0 ? newRoom.dimensions : undefined
     };
 
+    console.log('🔧 Created room object:', room);
+
     if (existingRooms.length === 0) {
       // First room - create quote
+      console.log('🔧 Calling onCreateQuote with room:', room);
       onCreateQuote(room);
     } else {
       // Additional room
+      console.log('🔧 Calling onAddRoom with room:', room);
       onAddRoom(room);
     }
 
@@ -245,9 +255,9 @@ const RoomManager: React.FC<RoomManagerProps> = ({
                 <button
                   onClick={handleCreateRoom}
                   disabled={!newRoom.name || !newRoom.frontModelId}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-md text-sm font-medium"
+                  className="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white rounded-md text-sm font-medium"
                 >
-                  {existingRooms.length === 0 ? 'Create Room & Start Quote' : 'Update Room'}
+                  {existingRooms.length === 0 ? 'DEBUG BUTTON' : 'Update Room'}
                 </button>
               </div>
             </div>

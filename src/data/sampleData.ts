@@ -59,39 +59,139 @@ export const products: Product[] = [
 
 export const processings: Processing[] = [
   // Cutting/Sizing Processings
-  { id: 'proc_cut_to_size', name: 'Cut to Size', description: 'Custom cut cabinet to specified dimensions', category: 'fabrication', pricingType: 'per_unit', price: 45, applicableProductCategories: ['cabinet'], calculationFormula: 'basePrice + 45' },
-  { id: 'proc_notch_plumbing', name: 'Plumbing Notch', description: 'Cut notch for plumbing access', category: 'fabrication', pricingType: 'per_unit', price: 25, applicableProductCategories: ['cabinet'] },
-  { id: 'proc_drill_holes', name: 'Drill Custom Holes', description: 'Drill holes for specific hardware placement', category: 'fabrication', pricingType: 'per_unit', price: 15, applicableProductCategories: ['cabinet', 'door'] },
+  { 
+    id: 'proc_cut_to_size', 
+    name: 'Cut to Size', 
+    description: 'Custom cut cabinet to specified dimensions', 
+    category: 'fabrication', 
+    pricingType: 'per_unit', 
+    price: 45, 
+    applicableProductCategories: ['cabinet'], 
+    calculationFormula: 'basePrice + 45',
+    requiresOptions: true,
+    options: [{
+      id: 'cut_amount',
+      name: 'Cut Amount (inches)',
+      type: 'number',
+      required: true,
+      validation: { min: 0.5, max: 12 }
+    }]
+  },
+  { id: 'proc_notch_plumbing', name: 'Plumbing Notch', description: 'Cut notch for plumbing access', category: 'fabrication', pricingType: 'per_unit', price: 25, applicableProductCategories: ['cabinet'], requiresOptions: false },
+  { id: 'proc_drill_holes', name: 'Drill Custom Holes', description: 'Drill holes for specific hardware placement', category: 'fabrication', pricingType: 'per_unit', price: 15, applicableProductCategories: ['cabinet', 'door'], requiresOptions: false },
   
   // Finishing Processings
-  { id: 'proc_stain_dark', name: 'Dark Stain', description: 'Apply dark walnut stain finish', category: 'finishing', pricingType: 'percentage', price: 0.15, applicableProductCategories: ['cabinet', 'door'] },
-  { id: 'proc_stain_medium', name: 'Medium Stain', description: 'Apply medium oak stain finish', category: 'finishing', pricingType: 'percentage', price: 0.10, applicableProductCategories: ['cabinet', 'door'] },
-  { id: 'proc_paint_white', name: 'White Paint', description: 'Custom white paint finish', category: 'finishing', pricingType: 'percentage', price: 0.20, applicableProductCategories: ['cabinet', 'door'] },
-  { id: 'proc_paint_custom', name: 'Custom Paint Color', description: 'Custom color paint finish', category: 'finishing', pricingType: 'percentage', price: 0.25, applicableProductCategories: ['cabinet', 'door'] },
+  { id: 'proc_stain_dark', name: 'Dark Stain', description: 'Apply dark walnut stain finish', category: 'finishing', pricingType: 'percentage', price: 0.15, applicableProductCategories: ['cabinet', 'door'], requiresOptions: false },
+  { id: 'proc_stain_medium', name: 'Medium Stain', description: 'Apply medium oak stain finish', category: 'finishing', pricingType: 'percentage', price: 0.10, applicableProductCategories: ['cabinet', 'door'], requiresOptions: false },
+  { id: 'proc_paint_white', name: 'White Paint', description: 'Custom white paint finish', category: 'finishing', pricingType: 'percentage', price: 0.20, applicableProductCategories: ['cabinet', 'door'], requiresOptions: false },
+  { 
+    id: 'proc_paint_custom', 
+    name: 'Custom Paint Color', 
+    description: 'Custom color paint finish', 
+    category: 'finishing', 
+    pricingType: 'percentage', 
+    price: 0.25, 
+    applicableProductCategories: ['cabinet', 'door'],
+    requiresOptions: true,
+    options: [{
+      id: 'paint_color',
+      name: 'Paint Color',
+      type: 'select',
+      required: true,
+      choices: [
+        { value: 'white', label: 'White', priceModifier: 0 },
+        { value: 'navy', label: 'Navy Blue', priceModifier: 25 },
+        { value: 'charcoal', label: 'Charcoal', priceModifier: 15 },
+        { value: 'sage', label: 'Sage Green', priceModifier: 20 },
+        { value: 'cream', label: 'Cream', priceModifier: 10 }
+      ]
+    }]
+  },
   
   // Hardware Installation
-  { id: 'proc_install_knobs', name: 'Install Knobs', description: 'Install cabinet knobs', category: 'hardware_install', pricingType: 'per_unit', price: 8, applicableProductCategories: ['cabinet'] },
-  { id: 'proc_install_pulls', name: 'Install Pulls', description: 'Install cabinet pulls', category: 'hardware_install', pricingType: 'per_unit', price: 12, applicableProductCategories: ['cabinet'] },
-  { id: 'proc_install_push_open', name: 'Install Push-Open', description: 'Install push-to-open mechanism', category: 'hardware_install', pricingType: 'per_unit', price: 35, applicableProductCategories: ['cabinet'] },
+  { id: 'proc_install_knobs', name: 'Install Knobs', description: 'Install cabinet knobs', category: 'hardware_install', pricingType: 'per_unit', price: 8, applicableProductCategories: ['cabinet'], requiresOptions: false },
+  { id: 'proc_install_pulls', name: 'Install Pulls', description: 'Install cabinet pulls', category: 'hardware_install', pricingType: 'per_unit', price: 12, applicableProductCategories: ['cabinet'], requiresOptions: false },
+  { id: 'proc_install_push_open', name: 'Install Push-Open', description: 'Install push-to-open mechanism', category: 'hardware_install', pricingType: 'per_unit', price: 35, applicableProductCategories: ['cabinet'], requiresOptions: false },
   
   // Countertop Processings
-  { id: 'proc_edge_bullnose', name: 'Bullnose Edge', description: 'Rounded bullnose edge profile', category: 'countertop_edge', pricingType: 'per_dimension', price: 8, applicableProductCategories: ['countertop'], calculationFormula: 'perimeter * 8' },
-  { id: 'proc_edge_beveled', name: 'Beveled Edge', description: 'Angled beveled edge profile', category: 'countertop_edge', pricingType: 'per_dimension', price: 12, applicableProductCategories: ['countertop'], calculationFormula: 'perimeter * 12' },
-  { id: 'proc_undermount_sink', name: 'Undermount Sink Cutout', description: 'Cut and polish undermount sink opening', category: 'countertop_cutout', pricingType: 'per_unit', price: 125, applicableProductCategories: ['countertop'] },
-  { id: 'proc_cooktop_cutout', name: 'Cooktop Cutout', description: 'Cut opening for cooktop installation', category: 'countertop_cutout', pricingType: 'per_unit', price: 85, applicableProductCategories: ['countertop'] },
+  { id: 'proc_edge_bullnose', name: 'Bullnose Edge', description: 'Rounded bullnose edge profile', category: 'countertop_edge', pricingType: 'per_dimension', price: 8, applicableProductCategories: ['countertop'], calculationFormula: 'perimeter * 8', requiresOptions: false },
+  { id: 'proc_edge_beveled', name: 'Beveled Edge', description: 'Angled beveled edge profile', category: 'countertop_edge', pricingType: 'per_dimension', price: 12, applicableProductCategories: ['countertop'], calculationFormula: 'perimeter * 12', requiresOptions: false },
+  { 
+    id: 'proc_undermount_sink', 
+    name: 'Undermount Sink Cutout', 
+    description: 'Cut and polish undermount sink opening', 
+    category: 'countertop_cutout', 
+    pricingType: 'per_unit', 
+    price: 125, 
+    applicableProductCategories: ['countertop'],
+    requiresOptions: true,
+    options: [{
+      id: 'sink_size',
+      name: 'Sink Size',
+      type: 'select',
+      required: true,
+      choices: [
+        { value: 'single', label: 'Single Bowl (30")', priceModifier: 0 },
+        { value: 'double', label: 'Double Bowl (33")', priceModifier: 25 },
+        { value: 'large', label: 'Large Single (36")', priceModifier: 15 }
+      ]
+    }]
+  },
+  { 
+    id: 'proc_cooktop_cutout', 
+    name: 'Cooktop Cutout', 
+    description: 'Cut opening for cooktop installation', 
+    category: 'countertop_cutout', 
+    pricingType: 'per_unit', 
+    price: 85, 
+    applicableProductCategories: ['countertop'],
+    requiresOptions: true,
+    options: [{
+      id: 'cooktop_size',
+      name: 'Cooktop Size',
+      type: 'select',
+      required: true,
+      choices: [
+        { value: '30', label: '30" Cooktop', priceModifier: 0 },
+        { value: '36', label: '36" Cooktop', priceModifier: 20 },
+        { value: '48', label: '48" Cooktop', priceModifier: 40 }
+      ]
+    }]
+  },
   
   // Specialty Processings
-  { id: 'proc_soft_close_hinges', name: 'Soft-Close Hinges', description: 'Upgrade to soft-close hinges', category: 'upgrade', pricingType: 'per_unit', price: 18, applicableProductCategories: ['cabinet'] },
-  { id: 'proc_full_ext_slides', name: 'Full Extension Slides', description: 'Upgrade to full extension drawer slides', category: 'upgrade', pricingType: 'per_unit', price: 28, applicableProductCategories: ['cabinet'] },
-  { id: 'proc_lazy_susan_install', name: 'Lazy Susan Installation', description: 'Install lazy susan mechanism', category: 'mechanism', pricingType: 'per_unit', price: 65, applicableProductCategories: ['cabinet'] },
+  { id: 'proc_soft_close_hinges', name: 'Soft-Close Hinges', description: 'Upgrade to soft-close hinges', category: 'upgrade', pricingType: 'per_unit', price: 18, applicableProductCategories: ['cabinet'], requiresOptions: false },
+  { id: 'proc_full_ext_slides', name: 'Full Extension Slides', description: 'Upgrade to full extension drawer slides', category: 'upgrade', pricingType: 'per_unit', price: 28, applicableProductCategories: ['cabinet'], requiresOptions: false },
+  { id: 'proc_lazy_susan_install', name: 'Lazy Susan Installation', description: 'Install lazy susan mechanism', category: 'mechanism', pricingType: 'per_unit', price: 65, applicableProductCategories: ['cabinet'], requiresOptions: false },
   
   // Glass and Panel Options
-  { id: 'proc_glass_door', name: 'Glass Door Insert', description: 'Add glass insert to cabinet door', category: 'door_option', pricingType: 'per_unit', price: 75, applicableProductCategories: ['cabinet'] },
-  { id: 'proc_mesh_door', name: 'Mesh Door Insert', description: 'Add decorative mesh insert', category: 'door_option', pricingType: 'per_unit', price: 45, applicableProductCategories: ['cabinet'] },
+  { id: 'proc_glass_door', name: 'Glass Door Insert', description: 'Add glass insert to cabinet door', category: 'door_option', pricingType: 'per_unit', price: 75, applicableProductCategories: ['cabinet'], requiresOptions: false },
+  { id: 'proc_mesh_door', name: 'Mesh Door Insert', description: 'Add decorative mesh insert', category: 'door_option', pricingType: 'per_unit', price: 45, applicableProductCategories: ['cabinet'], requiresOptions: false },
   
   // Lighting
-  { id: 'proc_led_interior', name: 'Interior LED Lighting', description: 'Install interior cabinet LED lighting', category: 'lighting', pricingType: 'per_unit', price: 55, applicableProductCategories: ['cabinet'] },
-  { id: 'proc_led_under_cabinet', name: 'Under-Cabinet LED', description: 'Install under-cabinet LED strip', category: 'lighting', pricingType: 'per_dimension', price: 18, applicableProductCategories: ['cabinet'], calculationFormula: 'width * 18' }
+  { id: 'proc_led_interior', name: 'Interior LED Lighting', description: 'Install interior cabinet LED lighting', category: 'lighting', pricingType: 'per_unit', price: 55, applicableProductCategories: ['cabinet'], requiresOptions: false },
+  { 
+    id: 'proc_led_under_cabinet', 
+    name: 'Under-Cabinet LED', 
+    description: 'Install under-cabinet LED strip', 
+    category: 'lighting', 
+    pricingType: 'per_dimension', 
+    price: 18, 
+    applicableProductCategories: ['cabinet'], 
+    calculationFormula: 'width * 18',
+    requiresOptions: true,
+    options: [{
+      id: 'led_color',
+      name: 'LED Color Temperature',
+      type: 'select',
+      required: true,
+      choices: [
+        { value: 'warm', label: 'Warm White (2700K)', priceModifier: 0 },
+        { value: 'cool', label: 'Cool White (4000K)', priceModifier: 5 },
+        { value: 'daylight', label: 'Daylight (5000K)', priceModifier: 10 }
+      ]
+    }]
+  }
 ];
 
 export const processingRules: ProcessingRule[] = [

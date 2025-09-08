@@ -23,6 +23,26 @@ export interface Product {
   description: string;
 }
 
+export interface ProcessingOption {
+  id: string;
+  name: string;
+  type: 'text' | 'number' | 'select' | 'boolean';
+  required: boolean;
+  defaultValue?: string | number | boolean;
+  choices?: { value: string | number; label: string; priceModifier?: number }[]; // for select type
+  validation?: {
+    min?: number;
+    max?: number;
+    pattern?: string;
+  };
+}
+
+export interface ProcessingOptionValue {
+  optionId: string;
+  value: string | number | boolean;
+  priceModifier?: number;
+}
+
 export interface Processing {
   id: string;
   name: string;
@@ -32,6 +52,8 @@ export interface Processing {
   price: number;
   applicableProductCategories: string[];
   calculationFormula?: string; // For dimension-based calculations
+  options?: ProcessingOption[];
+  requiresOptions: boolean; // true if this processing needs user input
 }
 
 export interface ProcessingRule {
@@ -78,6 +100,11 @@ export interface Room {
   description: string;
   frontModelId: string; // Determines colors and styles for all products in room
   activatedProcessings: string[]; // Processing IDs that are automatically applied to all products in this room
+  pendingProcessingOptions?: {
+    processingId: string;
+    requiredOptions: string[]; // option IDs that need values
+    status: 'pending' | 'resolved';
+  }[];
   dimensions?: {
     width: number;
     height: number;
@@ -100,6 +127,8 @@ export interface QuoteItem {
     calculatedPrice: number;
     isInherited?: boolean; // true if inherited from room, false/undefined if manually added
     appliedDate?: string;
+    optionValues?: ProcessingOptionValue[]; // NEW - stores selected option values
+    requiresOptions?: boolean; // NEW - for UI flagging
   }[];
   basePrice: number;
   totalPrice: number;

@@ -22,6 +22,10 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   hasQuote,
   onCreateQuote
 }) => {
+  console.log('🔧 ProductCatalog rendered with selectedModel:', selectedModel);
+  console.log('🔧 ProductCatalog hasQuote:', hasQuote);
+  console.log('🔧 ProductCatalog products count:', products.length);
+  
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 

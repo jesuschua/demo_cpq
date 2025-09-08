@@ -1,13 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import ImprovedApp from './ImprovedApp';
+import SimplifiedApp from './SimplifiedApp';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <ImprovedApp />
+    <SimplifiedApp />
   </React.StrictMode>
 );
