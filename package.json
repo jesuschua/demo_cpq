@@ -32,6 +32,7 @@
     "test:integration": "npx playwright test tests/integration/ --headed",
     "test:unit": "npx playwright test tests/unit/ --headed",
     "test:regression": "npx playwright test tests/regression/ --headed",
+    "test:regression:video": "npx playwright test --config=playwright.regression.config.js --headed",
     "test:all": "npx playwright test --headed",
     "test:headless": "npx playwright test"
   },

@@ -25,6 +25,9 @@ coverage/
 test-results/
 playwright-report/
 
+# Playwright video recordings
+*.webm
+
 # Test artifacts and screenshots
 *-test-*.png
 *-test-*.html
