@@ -36,6 +36,7 @@ function ImprovedApp() {
     quote: null,
     savedStates: {}
   });
+  
 
   // Phase progression with validation
   const canProceedToNextPhase = () => {
@@ -72,8 +73,8 @@ function ImprovedApp() {
         createQuoteFromCurrentState();
       }
       
-      // Update quote when moving to fees configuration
-      if (nextPhase === 'fees_config') {
+      // Update quote when moving to fees configuration (only if quote doesn't exist)
+      if (nextPhase === 'fees_config' && !workflow.quote) {
         createQuoteFromCurrentState();
       }
       
@@ -681,19 +682,45 @@ function ImprovedApp() {
                               <div class="processing-details">
                                 ${inheritedProcessings.map((ap: any) => {
                                   const processing = getProcessing(ap.processingId);
+                                  const selectedOptions = ap.selectedOptions || {};
                                   return `
                                     <div class="processing-item">
-                                      <span class="processing-inherited">${processing?.name || 'Unknown'}</span>
-                                      <span>+$${ap.calculatedPrice.toFixed(2)}</span>
+                                      <div>
+                                        <span class="processing-inherited">${processing?.name || 'Unknown'}</span>
+                                        <span>+$${ap.calculatedPrice.toFixed(2)}</span>
+                                      </div>
+                                      ${Object.keys(selectedOptions).length > 0 ? `
+                                        <div style="margin-top: 4px; font-size: 10px; color: #6b7280;">
+                                          ${Object.entries(selectedOptions).map(([optionId, value]) => {
+                                            const option = processing?.options?.find(o => o.id === optionId);
+                                            if (!option) return '';
+                                            const choice = option.choices?.find(c => c.value === value);
+                                            return `<div>• ${option.name}: ${choice?.label || value}</div>`;
+                                          }).join('')}
+                                        </div>
+                                      ` : ''}
                                     </div>
                                   `;
                                 }).join('')}
                                 ${manualProcessings.map((ap: any) => {
                                   const processing = getProcessing(ap.processingId);
+                                  const selectedOptions = ap.selectedOptions || {};
                                   return `
                                     <div class="processing-item">
-                                      <span class="processing-manual">${processing?.name || 'Unknown'}</span>
-                                      <span>+$${ap.calculatedPrice.toFixed(2)}</span>
+                                      <div>
+                                        <span class="processing-manual">${processing?.name || 'Unknown'}</span>
+                                        <span>+$${ap.calculatedPrice.toFixed(2)}</span>
+                                      </div>
+                                      ${Object.keys(selectedOptions).length > 0 ? `
+                                        <div style="margin-top: 4px; font-size: 10px; color: #6b7280;">
+                                          ${Object.entries(selectedOptions).map(([optionId, value]) => {
+                                            const option = processing?.options?.find(o => o.id === optionId);
+                                            if (!option) return '';
+                                            const choice = option.choices?.find(c => c.value === value);
+                                            return `<div>• ${option.name}: ${choice?.label || value}</div>`;
+                                          }).join('')}
+                                        </div>
+                                      ` : ''}
                                     </div>
                                   `;
                                 }).join('')}

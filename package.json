@@ -27,7 +27,13 @@
     "eject": "react-scripts eject",
     "mcp:start": "node mcp-server.js",
     "mcp:inspector": "mcp-inspector",
-    "mcp:compile": "tsc mcp-server.ts --target es2022 --module esnext --moduleResolution node --outDir ./dist"
+    "mcp:compile": "tsc mcp-server.ts --target es2022 --module esnext --moduleResolution node --outDir ./dist",
+    "test:e2e": "npx playwright test tests/e2e/ --headed",
+    "test:integration": "npx playwright test tests/integration/ --headed",
+    "test:unit": "npx playwright test tests/unit/ --headed",
+    "test:regression": "npx playwright test tests/regression/ --headed",
+    "test:all": "npx playwright test --headed",
+    "test:headless": "npx playwright test"
   },
   "eslintConfig": {
     "extends": [

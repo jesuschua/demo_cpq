@@ -21,6 +21,7 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
   productDependencies,
   onQuoteUpdate
 }) => {
+  
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   
   // Processing options state
