@@ -23,6 +23,43 @@ export interface Product {
   description: string;
 }
 
+// Processing Option Types
+export type ProcessingOptionType = 'select' | 'color' | 'text' | 'number' | 'boolean' | 'dimensions';
+
+export interface ProcessingOption {
+  id: string;
+  name: string;
+  type: ProcessingOptionType;
+  required: boolean;
+  description?: string;
+  defaultValue?: any;
+  
+  // For select options
+  choices?: {
+    value: string;
+    label: string;
+    priceModifier?: number; // Additional cost for this choice
+  }[];
+  
+  // For color options
+  colorPalette?: string[];
+  
+  // For number options
+  min?: number;
+  max?: number;
+  step?: number;
+  unit?: string;
+  
+  // For dimensions
+  dimensionFields?: ('width' | 'height' | 'depth')[];
+  
+  // Validation
+  validation?: {
+    pattern?: string; // Regex for text validation
+    customValidator?: string; // Function name for custom validation
+  };
+}
+
 export interface Processing {
   id: string;
   name: string;
@@ -32,6 +69,7 @@ export interface Processing {
   price: number;
   applicableProductCategories: string[];
   calculationFormula?: string; // For dimension-based calculations
+  options?: ProcessingOption[]; // New: Processing options
 }
 
 export interface ProcessingRule {
@@ -100,6 +138,9 @@ export interface QuoteItem {
     calculatedPrice: number;
     isInherited?: boolean; // true if inherited from room, false/undefined if manually added
     appliedDate?: string;
+    selectedOptions?: { // New: Store selected options
+      [optionId: string]: any;
+    };
   }[];
   basePrice: number;
   totalPrice: number;

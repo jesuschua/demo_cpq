@@ -892,6 +892,26 @@ function ImprovedApp() {
   // Workflow view
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Debug Panel - Always Visible */}
+      <div className="bg-red-200 border-2 border-red-500 p-4">
+        <h4 className="text-lg font-bold text-red-800 mb-2">DEBUG PANEL - ALWAYS VISIBLE</h4>
+        <p className="text-sm text-red-700 mb-2">Current View: {currentView}</p>
+        <p className="text-sm text-red-700 mb-2">Current Phase: {workflow.currentPhase}</p>
+        <p className="text-sm text-red-700 mb-2">Customer: {workflow.customer?.name || 'None'}</p>
+        <p className="text-sm text-red-700 mb-2">Rooms: {workflow.rooms.length}</p>
+        <p className="text-sm text-red-700 mb-2">Products: {workflow.products.length}</p>
+        <button 
+          onClick={() => {
+            console.log('=== DEBUG INFO ===');
+            console.log('Current view:', currentView);
+            console.log('Workflow:', workflow);
+          }}
+          className="bg-red-600 text-white px-4 py-2 rounded font-bold"
+        >
+          🔧 LOG DEBUG INFO
+        </button>
+      </div>
+
       {/* Header with Phase Progression */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

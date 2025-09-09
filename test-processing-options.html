@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing Options Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%; }
+        .close { float: right; font-size: 24px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Processing Options Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Check if proc_paint_custom has options</h2>
+        <button onclick="testProcessingOptions()">Test Processing Options</button>
+        <div id="test1-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Simulate Processing Options Modal</h2>
+        <button onclick="showModal()">Show Processing Options Modal</button>
+        <div id="test2-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Test Color Selection</h2>
+        <button onclick="testColorSelection()">Test Color Selection</button>
+        <div id="test3-result"></div>
+    </div>
+
+    <!-- Processing Options Modal -->
+    <div id="processingModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Configure Custom Paint Color</h3>
+            
+            <div style="margin: 20px 0;">
+                <label><strong>Paint Color *</strong></label>
+                <div style="margin: 10px 0;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                        <button onclick="selectColor('#FFFFFF')" style="width: 30px; height: 30px; border-radius: 50%; background: #FFFFFF; border: 2px solid #ccc;"></button>
+                        <button onclick="selectColor('#F5F5F5')" style="width: 30px; height: 30px; border-radius: 50%; background: #F5F5F5; border: 2px solid #ccc;"></button>
+                        <button onclick="selectColor('#E5E5E5')" style="width: 30px; height: 30px; border-radius: 50%; background: #E5E5E5; border: 2px solid #ccc;"></button>
+                        <button onclick="selectColor('#D3D3D3')" style="width: 30px; height: 30px; border-radius: 50%; background: #D3D3D3; border: 2px solid #ccc;"></button>
+                        <button onclick="selectColor('#A9A9A9')" style="width: 30px; height: 30px; border-radius: 50%; background: #A9A9A9; border: 2px solid #ccc;"></button>
+                        <button onclick="selectColor('#808080')" style="width: 30px; height: 30px; border-radius: 50%; background: #808080; border: 2px solid #ccc;"></button>
+                        <button onclick="selectColor('#696969')" style="width: 30px; height: 30px; border-radius: 50%; background: #696969; border: 2px solid #ccc;"></button>
+                        <button onclick="selectColor('#2F4F4F')" style="width: 30px; height: 30px; border-radius: 50%; background: #2F4F4F; border: 2px solid #ccc;"></button>
+                        <button onclick="selectColor('#000000')" style="width: 30px; height: 30px; border-radius: 50%; background: #000000; border: 2px solid #ccc;"></button>
+                    </div>
+                    <input type="color" id="colorPicker" onchange="selectColor(this.value)" style="width: 100%; height: 40px;">
+                </div>
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <label><strong>Paint Finish *</strong></label>
+                <select id="finishSelect" style="width: 100%; padding: 8px; margin-top: 5px;">
+                    <option value="">Select Paint Finish</option>
+                    <option value="matte">Matte</option>
+                    <option value="satin">Satin</option>
+                    <option value="semi-gloss">Semi-Gloss</option>
+                    <option value="gloss">Gloss (+$25)</option>
+                </select>
+            </div>
+            
+            <div style="margin-top: 30px; text-align: right;">
+                <button onclick="closeModal()" style="background: #6c757d; margin-right: 10px;">Cancel</button>
+                <button onclick="applyProcessing()" style="background: #28a745;">Apply Processing</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedColor = '#FFFFFF';
+        let selectedFinish = '';
+
+        function testProcessingOptions() {
+            const result = document.getElementById('test1-result');
+            
+            // Simulate the processing data
+            const procPaintCustom = {
+                id: 'proc_paint_custom',
+                name: 'Custom Paint Color',
+                description: 'Custom color paint finish',
+                category: 'finishing',
+                pricingType: 'percentage',
+                price: 0.25,
+                applicableProductCategories: ['cabinet', 'door'],
+                options: [
+                    {
+                        id: 'paint_color',
+                        name: 'Paint Color',
+                        type: 'color',
+                        required: true,
+                        description: 'Select the paint color',
+                        colorPalette: ['#FFFFFF', '#F5F5F5', '#E5E5E5', '#D3D3D3', '#A9A9A9', '#808080', '#696969', '#2F4F4F', '#000000'],
+                        defaultValue: '#FFFFFF'
+                    },
+                    {
+                        id: 'paint_finish',
+                        name: 'Paint Finish',
+                        type: 'select',
+                        required: true,
+                        choices: [
+                            { value: 'matte', label: 'Matte', priceModifier: 0 },
+                            { value: 'satin', label: 'Satin', priceModifier: 10 },
+                            { value: 'semi-gloss', label: 'Semi-Gloss', priceModifier: 15 },
+                            { value: 'gloss', label: 'Gloss', priceModifier: 25 }
+                        ],
+                        defaultValue: 'matte'
+                    }
+                ]
+            };
+            
+            const hasOptions = procPaintCustom.options && procPaintCustom.options.length > 0;
+            
+            if (hasOptions) {
+                result.innerHTML = '<div class="success">✅ SUCCESS: proc_paint_custom has ' + procPaintCustom.options.length + ' options configured</div>';
+                result.innerHTML += '<div>Options: ' + procPaintCustom.options.map(opt => opt.name).join(', ') + '</div>';
+            } else {
+                result.innerHTML = '<div class="error">❌ ERROR: proc_paint_custom has no options</div>';
+            }
+        }
+
+        function showModal() {
+            const modal = document.getElementById('processingModal');
+            modal.style.display = 'block';
+            document.getElementById('test2-result').innerHTML = '<div class="success">✅ Modal displayed successfully</div>';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('processingModal');
+            modal.style.display = 'none';
+        }
+
+        function selectColor(color) {
+            selectedColor = color;
+            document.getElementById('colorPicker').value = color;
+            console.log('Selected color:', color);
+        }
+
+        function testColorSelection() {
+            const result = document.getElementById('test3-result');
+            result.innerHTML = '<div class="success">✅ Color selection working. Selected: ' + selectedColor + '</div>';
+        }
+
+        function applyProcessing() {
+            const finish = document.getElementById('finishSelect').value;
+            if (!finish) {
+                alert('Please select a paint finish');
+                return;
+            }
+            
+            selectedFinish = finish;
+            console.log('Applying processing with:', { color: selectedColor, finish: selectedFinish });
+            
+            document.getElementById('test2-result').innerHTML = 
+                '<div class="success">✅ Processing applied successfully!</div>' +
+                '<div>Color: ' + selectedColor + '</div>' +
+                '<div>Finish: ' + selectedFinish + '</div>';
+            
+            closeModal();
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('processingModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

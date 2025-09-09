@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Quote, Product, Processing, ProcessingRule, ProductDependency, Room } from '../types';
+import ProcessingOptionSelector from './ProcessingOptionSelector';
 
 interface SimplifiedQuoteBuilderProps {
   quote: Quote;
@@ -22,6 +23,12 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
 }) => {
   const [selectedRoomFilter, setSelectedRoomFilter] = useState<string>('all');
   const [orderDiscount, setOrderDiscount] = useState(quote.orderDiscount);
+  
+  // Processing options state
+  const [showOptionSelector, setShowOptionSelector] = useState(false);
+  const [selectedProcessing, setSelectedProcessing] = useState<Processing | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [processingOptions, setProcessingOptions] = useState<{ [optionId: string]: any }>({});
 
   const getProduct = (productId: string) => products.find(p => p.id === productId);
   const getProcessing = (processingId: string) => processings.find(p => p.id === processingId);
@@ -54,10 +61,17 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
     const product = getProduct(productId);
     if (!product) return [];
 
+    // Debug: Check if custom paint is in the processings array
+    const customPaint = processings.find(p => p.id === 'proc_paint_custom');
+    console.log('Custom paint processing found:', customPaint);
+    console.log('All processings:', processings.map(p => ({ id: p.id, name: p.name, options: p.options?.length || 0 })));
+
     // Get processings applicable to this product category
     let available = processings.filter(proc => 
       proc.applicableProductCategories.includes(product.category)
     );
+
+    console.log('Initial available processings:', available.map(p => p.name));
 
     // Apply mutual exclusion rules
     const mutualExclusionRules = processingRules.filter(rule => 
@@ -70,6 +84,8 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
       );
       
       if (hasConflicting && rule.actions.excludeProcessings) {
+        console.log(`Applying exclusion rule: ${rule.description}`);
+        console.log(`Excluding: ${rule.actions.excludeProcessings}`);
         available = available.filter(proc => 
           !rule.actions.excludeProcessings?.includes(proc.id)
         );
@@ -79,25 +95,66 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
     // Remove already applied processings
     available = available.filter(proc => !currentProcessings.includes(proc.id));
 
+    console.log('Final available processings:', available.map(p => p.name));
+    console.log('Current applied processings:', currentProcessings);
+
     return available;
   };
 
+  const calculateProcessingPrice = (processing: Processing, item: any, selectedOptions: { [optionId: string]: any } = {}) => {
+    let basePrice = 0;
+    
+    // Calculate base processing price
+    if (processing.pricingType === 'per_unit') {
+      basePrice = processing.price * item.quantity;
+    } else if (processing.pricingType === 'percentage') {
+      basePrice = item.basePrice * item.quantity * processing.price;
+    } else if (processing.pricingType === 'per_dimension' && item.product?.dimensions) {
+      basePrice = (item.product.dimensions.width || 0) * processing.price;
+    }
+
+    // Add option price modifiers
+    let optionModifier = 0;
+    if (processing.options) {
+      processing.options.forEach(option => {
+        const selectedValue = selectedOptions[option.id];
+        if (selectedValue && option.choices) {
+          const choice = option.choices.find(c => c.value === selectedValue);
+          if (choice?.priceModifier) {
+            optionModifier += choice.priceModifier * item.quantity;
+          }
+        }
+      });
+    }
+
+    return basePrice + optionModifier;
+  };
+
   const addProcessingToItem = (itemId: string, processingId: string) => {
+    console.log('addProcessingToItem called with:', { itemId, processingId });
+    
     const item = quote.items.find(i => i.id === itemId);
     const processing = getProcessing(processingId);
     const product = item ? getProduct(item.productId) : null;
     
+    console.log('Found processing:', processing);
+    console.log('Processing options:', processing?.options);
+    console.log('Has options:', processing?.options && processing.options.length > 0);
+    
     if (!item || !processing || !product) return;
 
-    // Calculate processing price
-    let calculatedPrice = 0;
-    if (processing.pricingType === 'per_unit') {
-      calculatedPrice = processing.price * item.quantity;
-    } else if (processing.pricingType === 'percentage') {
-      calculatedPrice = item.basePrice * item.quantity * processing.price;
-    } else if (processing.pricingType === 'per_dimension' && product.dimensions) {
-      calculatedPrice = (product.dimensions.width || 0) * processing.price;
+    // If processing has options, show option selector
+    if (processing.options && processing.options.length > 0) {
+      console.log('Showing option selector for:', processing.name);
+      setSelectedProcessing(processing);
+      setSelectedItemId(itemId);
+      setProcessingOptions({});
+      setShowOptionSelector(true);
+      return;
     }
+
+    // No options, apply directly
+    const calculatedPrice = calculateProcessingPrice(processing, { ...item, product });
 
     const updatedItems = quote.items.map(i => {
       if (i.id === itemId) {
@@ -116,6 +173,45 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
     });
 
     recalculateQuote({ ...quote, items: updatedItems });
+  };
+
+  const handleApplyProcessingWithOptions = () => {
+    if (!selectedProcessing || !selectedItemId) return;
+
+    const item = quote.items.find(i => i.id === selectedItemId);
+    const product = item ? getProduct(item.productId) : null;
+    
+    if (!item || !product) return;
+
+    const calculatedPrice = calculateProcessingPrice(selectedProcessing, { ...item, product }, processingOptions);
+
+    const updatedItems = quote.items.map(i => {
+      if (i.id === selectedItemId) {
+        const updatedItem = {
+          ...i,
+          appliedProcessings: [
+            ...i.appliedProcessings,
+            { 
+              processingId: selectedProcessing.id, 
+              calculatedPrice,
+              selectedOptions: processingOptions
+            }
+          ]
+        };
+        updatedItem.totalPrice = (updatedItem.basePrice * updatedItem.quantity) + 
+          updatedItem.appliedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
+        return updatedItem;
+      }
+      return i;
+    });
+
+    recalculateQuote({ ...quote, items: updatedItems });
+    
+    // Close option selector
+    setShowOptionSelector(false);
+    setSelectedProcessing(null);
+    setSelectedItemId(null);
+    setProcessingOptions({});
   };
 
   const removeProcessingFromItem = (itemId: string, processingId: string) => {
@@ -165,8 +261,31 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
     return acc;
   }, {} as Record<string, typeof quote.items>);
 
+  console.log('Modal state:', { showOptionSelector, selectedProcessing: selectedProcessing?.name });
+  
+  console.log('SimplifiedQuoteBuilder rendering, quote items:', quote.items.length);
+  console.log('showOptionSelector:', showOptionSelector);
+  console.log('selectedProcessing:', selectedProcessing);
+
   return (
     <div className="space-y-6">
+      {/* Processing Option Selector Modal */}
+      {showOptionSelector && selectedProcessing && (
+        <ProcessingOptionSelector
+          processingId={selectedProcessing.id}
+          processingName={selectedProcessing.name}
+          options={selectedProcessing.options || []}
+          selectedOptions={processingOptions}
+          onOptionsChange={setProcessingOptions}
+          onClose={() => {
+            setShowOptionSelector(false);
+            setSelectedProcessing(null);
+            setSelectedItemId(null);
+            setProcessingOptions({});
+          }}
+          onApply={handleApplyProcessingWithOptions}
+        />
+      )}
       {/* Room Filter */}
       <div className="bg-white rounded-lg shadow p-4">
         <div className="flex items-center justify-between">
@@ -186,6 +305,64 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
               );
             })}
           </select>
+        </div>
+      </div>
+
+      {/* Debug Test Button - ALWAYS VISIBLE */}
+      <div className="mb-4 p-4 bg-red-200 border-2 border-red-500 rounded-lg">
+        <h4 className="text-lg font-bold text-red-800 mb-2">DEBUG PANEL</h4>
+        <p className="text-sm text-red-700 mb-2">Quote items: {quote.items.length}</p>
+        <p className="text-sm text-red-700 mb-2">Modal state: {showOptionSelector ? 'SHOWING' : 'HIDDEN'}</p>
+        <p className="text-sm text-red-700 mb-2">Selected processing: {selectedProcessing?.name || 'None'}</p>
+        
+        <div className="space-y-2">
+          <button 
+            onClick={() => {
+              console.log('=== DEBUG BUTTON CLICKED ===');
+              console.log('Quote items:', quote.items);
+              if (quote.items.length > 0) {
+                console.log('Calling addProcessingToItem with:', quote.items[0].id, 'proc_paint_custom');
+                addProcessingToItem(quote.items[0].id, 'proc_paint_custom');
+              } else {
+                console.log('No items in quote to test with');
+              }
+            }}
+            className="bg-red-600 text-white px-6 py-3 rounded font-bold text-lg mr-2"
+          >
+            🔧 TEST CUSTOM PAINT
+          </button>
+          
+          <button 
+            onClick={() => {
+              console.log('=== FORCE MODAL TEST ===');
+              const mockProcessing = {
+                id: 'proc_paint_custom',
+                name: 'Custom Paint Color',
+                description: 'Custom color paint finish',
+                category: 'finishing',
+                pricingType: 'percentage' as const,
+                price: 0.25,
+                applicableProductCategories: ['cabinet', 'door'],
+                options: [
+                  {
+                    id: 'paint_color',
+                    name: 'Paint Color',
+                    type: 'color' as const,
+                    required: true,
+                    colorPalette: ['#FFFFFF', '#F5F5F5', '#E5E5E5'],
+                    defaultValue: '#FFFFFF'
+                  }
+                ]
+              };
+              setSelectedProcessing(mockProcessing);
+              setSelectedItemId(quote.items[0]?.id || 'test');
+              setProcessingOptions({});
+              setShowOptionSelector(true);
+            }}
+            className="bg-blue-600 text-white px-6 py-3 rounded font-bold text-lg"
+          >
+            🔧 FORCE MODAL
+          </button>
         </div>
       </div>
 
@@ -383,22 +560,60 @@ const ItemRow: React.FC<{
             {item.appliedProcessings.map((ap: any) => {
               const processing = getProcessing(ap.processingId);
               return (
-                <div key={ap.processingId} className="flex justify-between items-center bg-blue-50 px-3 py-2 rounded">
-                  <div>
-                    <span className="text-sm font-medium text-blue-900">{processing?.name}</span>
-                    <span className="text-xs text-blue-700 ml-2">{processing?.description}</span>
+                <div key={ap.processingId} className="bg-blue-50 px-3 py-2 rounded">
+                  <div className="flex justify-between items-center mb-1">
+                    <div>
+                      <span className="text-sm font-medium text-blue-900">{processing?.name}</span>
+                      <span className="text-xs text-blue-700 ml-2">{processing?.description}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-blue-900">
+                        +${ap.calculatedPrice.toFixed(2)}
+                      </span>
+                      <button
+                        onClick={() => removeProcessingFromItem(item.id, ap.processingId)}
+                        className="text-red-600 hover:text-red-800 text-xs"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-blue-900">
-                      +${ap.calculatedPrice.toFixed(2)}
-                    </span>
-                    <button
-                      onClick={() => removeProcessingFromItem(item.id, ap.processingId)}
-                      className="text-red-600 hover:text-red-800 text-xs"
-                    >
-                      Remove
-                    </button>
-                  </div>
+                  
+                  {/* Display selected options */}
+                  {ap.selectedOptions && Object.keys(ap.selectedOptions).length > 0 && (
+                    <div className="mt-2 text-xs text-blue-800">
+                      <div className="font-medium mb-1">Selected Options:</div>
+                      {Object.entries(ap.selectedOptions).map(([optionId, value]) => {
+                        const option = processing?.options?.find((o: any) => o.id === optionId);
+                        if (!option) return null;
+                        
+                        let displayValue: React.ReactNode = String(value);
+                        if (option.type === 'color') {
+                          displayValue = (
+                            <span className="inline-flex items-center">
+                              <span 
+                                className="w-3 h-3 rounded-full border border-gray-300 mr-1" 
+                                style={{ backgroundColor: value as string }}
+                              />
+                              {value as string}
+                            </span>
+                          );
+                        } else if (option.type === 'select') {
+                          const choice = option.choices?.find((c: any) => c.value === value);
+                          displayValue = choice?.label || (value as string);
+                        } else if (option.type === 'dimensions' && typeof value === 'object' && value !== null) {
+                          const dims = value as { width?: number; height?: number; depth?: number };
+                          displayValue = `${dims.width || 0}" × ${dims.height || 0}" × ${dims.depth || 0}"`;
+                        }
+                        
+                        return (
+                          <div key={optionId} className="ml-2">
+                            <span className="font-medium">{option.name}:</span> {displayValue}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -407,20 +622,31 @@ const ItemRow: React.FC<{
       )}
 
       {/* Available Processings */}
-      {availableProcessings.length > 0 && (
-        <div>
-          <h5 className="text-sm font-medium text-gray-700 mb-2">Available Processings:</h5>
+      <div>
+        <h5 className="text-sm font-medium text-gray-700 mb-2">Available Processings:</h5>
+        <div className="text-xs text-gray-500 mb-2">
+          Found {availableProcessings.length} processings for {product?.category} products
+        </div>
+        {availableProcessings.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {availableProcessings.map((processing: any) => (
+            {availableProcessings.map((processing: any) => {
+              console.log('Rendering processing button:', processing.name, processing.id, 'has options:', processing.options?.length || 0);
+              return (
               <button
                 key={processing.id}
-                onClick={() => addProcessingToItem(item.id, processing.id)}
+                onClick={() => {
+                  console.log('Processing button clicked:', processing.name);
+                  addProcessingToItem(item.id, processing.id);
+                }}
                 className="text-left p-3 border border-gray-200 rounded hover:border-blue-300 hover:bg-blue-50 transition-colors"
               >
                 <div className="flex justify-between items-start">
                   <div>
                     <h6 className="text-sm font-medium text-gray-900">{processing.name}</h6>
                     <p className="text-xs text-gray-600">{processing.description}</p>
+                    {processing.options && processing.options.length > 0 && (
+                      <p className="text-xs text-blue-600 font-medium">⚙️ Has {processing.options.length} options</p>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-green-600">
@@ -433,10 +659,13 @@ const ItemRow: React.FC<{
                   </div>
                 </div>
               </button>
-            ))}
+            );
+            })}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-sm text-gray-500 italic">No processings available for this product type</div>
+        )}
+      </div>
     </div>
   );
 };

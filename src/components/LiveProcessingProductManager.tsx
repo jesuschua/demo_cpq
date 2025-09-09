@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Quote, Product, Processing, ProcessingRule, ProductDependency, Room } from '../types';
+import ProcessingOptionSelector from './ProcessingOptionSelector';
 
 interface LiveProcessingProductManagerProps {
   quote: Quote;
@@ -21,6 +22,11 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
   onQuoteUpdate
 }) => {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  
+  // Processing options state
+  const [showOptionSelector, setShowOptionSelector] = useState(false);
+  const [selectedProcessing, setSelectedProcessing] = useState<Processing | null>(null);
+  const [processingOptions, setProcessingOptions] = useState<{ [optionId: string]: any }>({});
   
   const getProduct = (productId: string) => products.find(p => p.id === productId);
   const getProcessing = (processingId: string) => processings.find(p => p.id === processingId);
@@ -53,6 +59,17 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
     const processing = getProcessing(processingId);
     if (!item || !processing) return;
 
+    // If processing has options, show option selector
+    if (processing.options && processing.options.length > 0) {
+      console.log('Processing has options, showing selector:', processing.name);
+      setSelectedProcessing(processing);
+      setSelectedItemId(itemId);
+      setProcessingOptions({});
+      setShowOptionSelector(true);
+      return;
+    }
+
+    // No options, apply directly
     const calculatedPrice = processing.pricingType === 'percentage' 
       ? item.basePrice * processing.price
       : processing.price;
@@ -85,6 +102,70 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
     updatedQuote.finalTotal = finalTotal;
 
     onQuoteUpdate(updatedQuote);
+  };
+
+  const handleApplyProcessingWithOptions = () => {
+    if (!selectedProcessing || !selectedItemId) return;
+
+    const item = quote.items.find(i => i.id === selectedItemId);
+    if (!item) return;
+
+    // Calculate price with options
+    let basePrice = selectedProcessing.pricingType === 'percentage' 
+      ? item.basePrice * selectedProcessing.price
+      : selectedProcessing.price;
+
+    // Add option price modifiers
+    let optionModifier = 0;
+    if (selectedProcessing.options) {
+      selectedProcessing.options.forEach(option => {
+        const selectedValue = processingOptions[option.id];
+        if (selectedValue && option.choices) {
+          const choice = option.choices.find(c => c.value === selectedValue);
+          if (choice?.priceModifier) {
+            optionModifier += choice.priceModifier;
+          }
+        }
+      });
+    }
+
+    const calculatedPrice = basePrice + optionModifier;
+
+    const appliedProcessing = {
+      processingId: selectedProcessing.id,
+      calculatedPrice,
+      appliedAt: new Date().toISOString(),
+      selectedOptions: processingOptions
+    };
+
+    const updatedQuote = {
+      ...quote,
+      items: quote.items.map(i => 
+        i.id === selectedItemId 
+          ? { 
+              ...i, 
+              appliedProcessings: [...i.appliedProcessings, appliedProcessing],
+              totalPrice: i.basePrice + [...i.appliedProcessings, appliedProcessing].reduce((sum, ap) => sum + ap.calculatedPrice, 0)
+            }
+          : i
+      )
+    };
+
+    // Recalculate quote totals
+    const subtotal = updatedQuote.items.reduce((sum, item) => sum + (item.totalPrice * item.quantity), 0);
+    const customerDiscountAmount = subtotal * (updatedQuote.customerDiscount / 100);
+    const finalTotal = subtotal - customerDiscountAmount - (updatedQuote.orderDiscount || 0);
+
+    updatedQuote.subtotal = subtotal;
+    updatedQuote.finalTotal = finalTotal;
+
+    onQuoteUpdate(updatedQuote);
+    
+    // Close modal
+    setShowOptionSelector(false);
+    setSelectedProcessing(null);
+    setSelectedItemId(null);
+    setProcessingOptions({});
   };
 
   const removeProcessingFromItem = (itemId: string, processingId: string) => {
@@ -171,6 +252,24 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
 
   return (
     <div className="flex space-x-6">
+      {/* Processing Option Selector Modal */}
+      {showOptionSelector && selectedProcessing && (
+        <ProcessingOptionSelector
+          processingId={selectedProcessing.id}
+          processingName={selectedProcessing.name}
+          options={selectedProcessing.options || []}
+          selectedOptions={processingOptions}
+          onOptionsChange={setProcessingOptions}
+          onClose={() => {
+            setShowOptionSelector(false);
+            setSelectedProcessing(null);
+            setSelectedItemId(null);
+            setProcessingOptions({});
+          }}
+          onApply={handleApplyProcessingWithOptions}
+        />
+      )}
+      
       {/* Left Side - Product Cards Organized by Room */}
       <div className="flex-1">
         {quote.items.length === 0 ? (

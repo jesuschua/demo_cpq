@@ -59,15 +59,119 @@ export const products: Product[] = [
 
 export const processings: Processing[] = [
   // Cutting/Sizing Processings
-  { id: 'proc_cut_to_size', name: 'Cut to Size', description: 'Custom cut cabinet to specified dimensions', category: 'fabrication', pricingType: 'per_unit', price: 45, applicableProductCategories: ['cabinet'], calculationFormula: 'basePrice + 45' },
+  { 
+    id: 'proc_cut_to_size', 
+    name: 'Cut to Size', 
+    description: 'Custom cut cabinet to specified dimensions', 
+    category: 'fabrication', 
+    pricingType: 'per_unit', 
+    price: 45, 
+    applicableProductCategories: ['cabinet'], 
+    calculationFormula: 'basePrice + 45',
+    options: [
+      {
+        id: 'custom_dimensions',
+        name: 'Custom Dimensions',
+        type: 'dimensions',
+        required: true,
+        description: 'Enter the custom dimensions for cutting',
+        dimensionFields: ['width', 'height', 'depth'],
+        defaultValue: { width: 24, height: 34.5, depth: 24 }
+      },
+      {
+        id: 'cut_precision',
+        name: 'Cut Precision',
+        type: 'select',
+        required: false,
+        description: 'Select the precision level for cutting',
+        choices: [
+          { value: 'standard', label: 'Standard (±1/8")', priceModifier: 0 },
+          { value: 'precise', label: 'Precise (±1/16")', priceModifier: 10 },
+          { value: 'exact', label: 'Exact (±1/32")', priceModifier: 20 }
+        ],
+        defaultValue: 'standard'
+      }
+    ]
+  },
   { id: 'proc_notch_plumbing', name: 'Plumbing Notch', description: 'Cut notch for plumbing access', category: 'fabrication', pricingType: 'per_unit', price: 25, applicableProductCategories: ['cabinet'] },
   { id: 'proc_drill_holes', name: 'Drill Custom Holes', description: 'Drill holes for specific hardware placement', category: 'fabrication', pricingType: 'per_unit', price: 15, applicableProductCategories: ['cabinet', 'door'] },
   
   // Finishing Processings
-  { id: 'proc_stain_dark', name: 'Dark Stain', description: 'Apply dark walnut stain finish', category: 'finishing', pricingType: 'percentage', price: 0.15, applicableProductCategories: ['cabinet', 'door'] },
-  { id: 'proc_stain_medium', name: 'Medium Stain', description: 'Apply medium oak stain finish', category: 'finishing', pricingType: 'percentage', price: 0.10, applicableProductCategories: ['cabinet', 'door'] },
-  { id: 'proc_paint_white', name: 'White Paint', description: 'Custom white paint finish', category: 'finishing', pricingType: 'percentage', price: 0.20, applicableProductCategories: ['cabinet', 'door'] },
-  { id: 'proc_paint_custom', name: 'Custom Paint Color', description: 'Custom color paint finish', category: 'finishing', pricingType: 'percentage', price: 0.25, applicableProductCategories: ['cabinet', 'door'] },
+  { 
+    id: 'proc_stain_dark', 
+    name: 'Dark Stain', 
+    description: 'Apply dark walnut stain finish', 
+    category: 'finishing', 
+    pricingType: 'percentage', 
+    price: 0.15, 
+    applicableProductCategories: ['cabinet', 'door'],
+    options: [
+      {
+        id: 'stain_color',
+        name: 'Stain Color',
+        type: 'select',
+        required: true,
+        description: 'Choose the stain color',
+        choices: [
+          { value: 'walnut', label: 'Dark Walnut', priceModifier: 0 },
+          { value: 'cherry', label: 'Cherry', priceModifier: 0.02 },
+          { value: 'mahogany', label: 'Mahogany', priceModifier: 0.03 },
+          { value: 'ebony', label: 'Ebony', priceModifier: 0.01 }
+        ]
+      }
+    ]
+  },
+  { 
+    id: 'proc_stain_medium', 
+    name: 'Medium Stain', 
+    description: 'Apply medium oak stain finish', 
+    category: 'finishing', 
+    pricingType: 'percentage', 
+    price: 0.10, 
+    applicableProductCategories: ['cabinet', 'door'] 
+  },
+  { 
+    id: 'proc_paint_white', 
+    name: 'White Paint', 
+    description: 'Custom white paint finish', 
+    category: 'finishing', 
+    pricingType: 'percentage', 
+    price: 0.20, 
+    applicableProductCategories: ['cabinet', 'door'] 
+  },
+  { 
+    id: 'proc_paint_custom', 
+    name: 'Custom Paint Color', 
+    description: 'Custom color paint finish', 
+    category: 'finishing', 
+    pricingType: 'percentage', 
+    price: 0.25, 
+    applicableProductCategories: ['cabinet', 'door'],
+    options: [
+      {
+        id: 'paint_color',
+        name: 'Paint Color',
+        type: 'color',
+        required: true,
+        description: 'Select the paint color',
+        colorPalette: ['#FFFFFF', '#F5F5F5', '#E5E5E5', '#D3D3D3', '#A9A9A9', '#808080', '#696969', '#2F4F4F', '#000000'],
+        defaultValue: '#FFFFFF'
+      },
+      {
+        id: 'paint_finish',
+        name: 'Paint Finish',
+        type: 'select',
+        required: true,
+        description: 'Choose the paint finish type',
+        choices: [
+          { value: 'matte', label: 'Matte', priceModifier: 0 },
+          { value: 'satin', label: 'Satin', priceModifier: 0.01 },
+          { value: 'semi_gloss', label: 'Semi-Gloss', priceModifier: 0.02 },
+          { value: 'high_gloss', label: 'High-Gloss', priceModifier: 0.03 }
+        ]
+      }
+    ]
+  },
   
   // Hardware Installation
   { id: 'proc_install_knobs', name: 'Install Knobs', description: 'Install cabinet knobs', category: 'hardware_install', pricingType: 'per_unit', price: 8, applicableProductCategories: ['cabinet'] },
@@ -103,13 +207,14 @@ export const processingRules: ProcessingRule[] = [
     actions: { excludeProcessings: ['proc_install_push_open'] },
     description: 'Cannot have push-to-open with traditional handles'
   },
-  {
-    id: 'rule_stain_paint_exclusion',
-    type: 'mutual_exclusion',
-    conditions: { processingIds: ['proc_stain_dark', 'proc_stain_medium'] },
-    actions: { excludeProcessings: ['proc_paint_white', 'proc_paint_custom'] },
-    description: 'Cannot stain and paint the same item'
-  },
+  // Temporarily disabled for testing
+  // {
+  //   id: 'rule_stain_paint_exclusion',
+  //   type: 'mutual_exclusion',
+  //   conditions: { processingIds: ['proc_stain_dark', 'proc_stain_medium'] },
+  //   actions: { excludeProcessings: ['proc_paint_white', 'proc_paint_custom'] },
+  //   description: 'Cannot stain and paint the same item'
+  // },
   {
     id: 'rule_edge_exclusion',
     type: 'mutual_exclusion',

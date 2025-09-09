@@ -175,6 +175,27 @@ function SimplifiedApp() {
         </div>
       </header>
 
+      {/* Debug Panel - Always Visible */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="mb-4 p-4 bg-red-200 border-2 border-red-500 rounded-lg">
+          <h4 className="text-lg font-bold text-red-800 mb-2">DEBUG PANEL - ALWAYS VISIBLE</h4>
+          <p className="text-sm text-red-700 mb-2">Current View: {state.currentView}</p>
+          <p className="text-sm text-red-700 mb-2">Quote Items: {state.currentQuote?.items?.length || 0}</p>
+          <p className="text-sm text-red-700 mb-2">Selected Customer: {state.selectedCustomer?.name || 'None'}</p>
+          <button 
+            onClick={() => {
+              console.log('=== DEBUG INFO ===');
+              console.log('Current view:', state.currentView);
+              console.log('Quote:', state.currentQuote);
+              console.log('Selected customer:', state.selectedCustomer);
+            }}
+            className="bg-red-600 text-white px-4 py-2 rounded font-bold"
+          >
+            🔧 LOG DEBUG INFO
+          </button>
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Customer Selection */}
