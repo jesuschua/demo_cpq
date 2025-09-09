@@ -151,11 +151,21 @@ export const processings: Processing[] = [
       {
         id: 'paint_color',
         name: 'Paint Color',
-        type: 'color',
+        type: 'select',
         required: true,
-        description: 'Select the paint color',
-        colorPalette: ['#FFFFFF', '#F5F5F5', '#E5E5E5', '#D3D3D3', '#A9A9A9', '#808080', '#696969', '#2F4F4F', '#000000'],
-        defaultValue: '#FFFFFF'
+        description: 'Select the paint color from our curated collection',
+        choices: [
+          { value: 'pure_white', label: 'Pure White', priceModifier: 0 },
+          { value: 'cloud_white', label: 'Cloud White', priceModifier: 0 },
+          { value: 'pearl_gray', label: 'Pearl Gray', priceModifier: 0 },
+          { value: 'charcoal_gray', label: 'Charcoal Gray', priceModifier: 0 },
+          { value: 'navy_blue', label: 'Navy Blue', priceModifier: 0.01 },
+          { value: 'sage_green', label: 'Sage Green', priceModifier: 0.01 },
+          { value: 'dusty_blue', label: 'Dusty Blue', priceModifier: 0.01 },
+          { value: 'warm_beige', label: 'Warm Beige', priceModifier: 0 },
+          { value: 'classic_black', label: 'Classic Black', priceModifier: 0.02 }
+        ],
+        defaultValue: 'pure_white'
       },
       {
         id: 'paint_finish',
