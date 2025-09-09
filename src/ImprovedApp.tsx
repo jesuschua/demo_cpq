@@ -7,8 +7,8 @@ import EnhancedRoomManager from './components/EnhancedRoomManager';
 import CleanProductCatalog from './components/CleanProductCatalog';
 import LiveProcessingProductManager from './components/LiveProcessingProductManager';
 
-// Define the 4 clear phases
-type WorkflowPhase = 'customer_config' | 'room_config' | 'product_config' | 'quote_finalize';
+// Define the 5 clear phases
+type WorkflowPhase = 'customer_config' | 'room_config' | 'product_config' | 'processing_config' | 'quote_finalize';
 type AppView = 'dashboard' | 'workflow';
 
 interface WorkflowState {
@@ -46,13 +46,17 @@ function ImprovedApp() {
         // Ensure there's at least one product total (can be lenient about all rooms having products)
         return workflow.products.length > 0;
       }
+      case 'processing_config': {
+        // Can proceed to quote finalize after configuring processings
+        return workflow.products.length > 0;
+      }
       case 'quote_finalize': return workflow.quote !== null;
       default: return false;
     }
   };
 
   const proceedToNextPhase = () => {
-    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'quote_finalize'];
+    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'processing_config', 'quote_finalize'];
     const currentIndex = phaseOrder.indexOf(workflow.currentPhase);
     
     if (currentIndex < phaseOrder.length - 1 && canProceedToNextPhase()) {
@@ -60,6 +64,11 @@ function ImprovedApp() {
       
       // Auto-create quote when moving to product config
       if (nextPhase === 'product_config' && !workflow.quote) {
+        createQuoteFromCurrentState();
+      }
+      
+      // Auto-create quote when moving to processing config if not already created
+      if (nextPhase === 'processing_config' && !workflow.quote) {
         createQuoteFromCurrentState();
       }
       
@@ -94,6 +103,7 @@ function ImprovedApp() {
       case 'customer_config': return workflow.customer;
       case 'room_config': return workflow.rooms;
       case 'product_config': return workflow.products;
+      case 'processing_config': return workflow.products;
       case 'quote_finalize': return workflow.quote;
       default: return null;
     }
@@ -115,6 +125,7 @@ function ImprovedApp() {
       customer_config: 'Customer Configuration',
       room_config: 'Room Configuration', 
       product_config: 'Product Configuration',
+      processing_config: 'Processing Configuration',
       quote_finalize: 'Quote'
     };
     alert(`${phaseNames[workflow.currentPhase]} saved successfully!`);
@@ -286,10 +297,21 @@ function ImprovedApp() {
       totalPrice: (product.basePrice * quantity) + inheritedProcessings.reduce((sum, p) => sum + (p?.calculatedPrice || 0), 0)
     };
 
-    setWorkflow(prev => ({
-      ...prev,
-      products: [...prev.products, newItem]
-    }));
+    setWorkflow(prev => {
+      const updatedProducts = [...prev.products, newItem];
+      const updatedQuote = prev.quote ? {
+        ...prev.quote,
+        items: updatedProducts,
+        subtotal: updatedProducts.reduce((sum, item) => sum + item.totalPrice, 0),
+        finalTotal: updatedProducts.reduce((sum, item) => sum + item.totalPrice, 0) * (1 - (prev.quote.customerDiscount + prev.quote.orderDiscount) / 100)
+      } : null;
+      
+      return {
+        ...prev,
+        products: updatedProducts,
+        quote: updatedQuote
+      };
+    });
   };
 
   const handleQuoteUpdate = (updatedQuote: Quote) => {
@@ -872,8 +894,12 @@ function ImprovedApp() {
       title: 'Phase 3: Product Configuration',
       description: 'Select products that inherit room styling'
     },
+    processing_config: {
+      title: 'Phase 4: Processing Configuration',
+      description: 'Configure processing options and customizations'
+    },
     quote_finalize: {
-      title: 'Phase 4: Quote Finalization',
+      title: 'Phase 5: Quote Finalization',
       description: 'Review, adjust discounts, and finalize quote'
     }
   };
@@ -904,10 +930,10 @@ function ImprovedApp() {
             
             {/* Phase Progress Indicator */}
             <div className="flex items-center space-x-2">
-              {(['customer_config', 'room_config', 'product_config', 'quote_finalize'] as WorkflowPhase[]).map((phase, index) => {
-                const phaseNames = ['Customer', 'Room', 'Products', 'Quote'];
+              {(['customer_config', 'room_config', 'product_config', 'processing_config', 'quote_finalize'] as WorkflowPhase[]).map((phase, index) => {
+                const phaseNames = ['Customer', 'Room', 'Products', 'Processing', 'Quote'];
                 const isActive = workflow.currentPhase === phase;
-                const isCompleted = (['customer_config', 'room_config', 'product_config', 'quote_finalize'] as WorkflowPhase[]).indexOf(workflow.currentPhase) > index;
+                const isCompleted = (['customer_config', 'room_config', 'product_config', 'processing_config', 'quote_finalize'] as WorkflowPhase[]).indexOf(workflow.currentPhase) > index;
                 
                 return (
                   <div key={phase} className="flex items-center">
@@ -1287,7 +1313,45 @@ function ImprovedApp() {
           </div>
         )}
 
-        {/* Phase 4: Quote Finalization */}
+        {/* Phase 4: Processing Configuration */}
+        {workflow.currentPhase === 'processing_config' && workflow.products.length > 0 && (
+          <div>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Configure Processing Options</h2>
+              <p className="text-gray-600">Add custom processing options to your products</p>
+            </div>
+
+            <LiveProcessingProductManager
+              quote={workflow.quote || { 
+                id: 'temp', 
+                customerId: workflow.customer?.id || '', 
+                items: workflow.products, 
+                rooms: workflow.rooms, 
+                contractDiscount: 0,
+                customerDiscount: 0, 
+                orderDiscount: 0,
+                subtotal: 0, 
+                totalDiscount: 0,
+                finalTotal: 0,
+                status: 'draft' as const,
+                createdAt: new Date(),
+                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+                requiresApproval: false,
+                approvalThreshold: 0
+              }}
+              rooms={workflow.rooms}
+              products={products}
+              processings={processings}
+              processingRules={processingRules}
+              productDependencies={productDependencies}
+              onQuoteUpdate={(updatedQuote) => {
+                setWorkflow(prev => ({ ...prev, quote: updatedQuote }));
+              }}
+            />
+          </div>
+        )}
+
+        {/* Phase 5: Quote Finalization */}
         {workflow.currentPhase === 'quote_finalize' && workflow.quote && (
           <div>
             <div className="text-center mb-8">
