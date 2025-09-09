@@ -61,7 +61,6 @@ const LiveProcessingProductManager: React.FC<LiveProcessingProductManagerProps> 
 
     // If processing has options, show option selector
     if (processing.options && processing.options.length > 0) {
-      console.log('Processing has options, showing selector:', processing.name);
       setSelectedProcessing(processing);
       setSelectedItemId(itemId);
       setProcessingOptions({});

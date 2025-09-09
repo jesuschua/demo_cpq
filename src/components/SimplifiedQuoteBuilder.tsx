@@ -63,15 +63,12 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
 
     // Debug: Check if custom paint is in the processings array
     const customPaint = processings.find(p => p.id === 'proc_paint_custom');
-    console.log('Custom paint processing found:', customPaint);
-    console.log('All processings:', processings.map(p => ({ id: p.id, name: p.name, options: p.options?.length || 0 })));
 
     // Get processings applicable to this product category
     let available = processings.filter(proc => 
       proc.applicableProductCategories.includes(product.category)
     );
 
-    console.log('Initial available processings:', available.map(p => p.name));
 
     // Apply mutual exclusion rules
     const mutualExclusionRules = processingRules.filter(rule => 
@@ -84,8 +81,6 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
       );
       
       if (hasConflicting && rule.actions.excludeProcessings) {
-        console.log(`Applying exclusion rule: ${rule.description}`);
-        console.log(`Excluding: ${rule.actions.excludeProcessings}`);
         available = available.filter(proc => 
           !rule.actions.excludeProcessings?.includes(proc.id)
         );
@@ -95,8 +90,6 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
     // Remove already applied processings
     available = available.filter(proc => !currentProcessings.includes(proc.id));
 
-    console.log('Final available processings:', available.map(p => p.name));
-    console.log('Current applied processings:', currentProcessings);
 
     return available;
   };
@@ -131,21 +124,14 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
   };
 
   const addProcessingToItem = (itemId: string, processingId: string) => {
-    console.log('addProcessingToItem called with:', { itemId, processingId });
-    
     const item = quote.items.find(i => i.id === itemId);
     const processing = getProcessing(processingId);
     const product = item ? getProduct(item.productId) : null;
-    
-    console.log('Found processing:', processing);
-    console.log('Processing options:', processing?.options);
-    console.log('Has options:', processing?.options && processing.options.length > 0);
     
     if (!item || !processing || !product) return;
 
     // If processing has options, show option selector
     if (processing.options && processing.options.length > 0) {
-      console.log('Showing option selector for:', processing.name);
       setSelectedProcessing(processing);
       setSelectedItemId(itemId);
       setProcessingOptions({});
@@ -261,11 +247,6 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
     return acc;
   }, {} as Record<string, typeof quote.items>);
 
-  console.log('Modal state:', { showOptionSelector, selectedProcessing: selectedProcessing?.name });
-  
-  console.log('SimplifiedQuoteBuilder rendering, quote items:', quote.items.length);
-  console.log('showOptionSelector:', showOptionSelector);
-  console.log('selectedProcessing:', selectedProcessing);
 
   return (
     <div className="space-y-6">
@@ -308,63 +289,6 @@ const SimplifiedQuoteBuilder: React.FC<SimplifiedQuoteBuilderProps> = ({
         </div>
       </div>
 
-      {/* Debug Test Button - ALWAYS VISIBLE */}
-      <div className="mb-4 p-4 bg-red-200 border-2 border-red-500 rounded-lg">
-        <h4 className="text-lg font-bold text-red-800 mb-2">DEBUG PANEL</h4>
-        <p className="text-sm text-red-700 mb-2">Quote items: {quote.items.length}</p>
-        <p className="text-sm text-red-700 mb-2">Modal state: {showOptionSelector ? 'SHOWING' : 'HIDDEN'}</p>
-        <p className="text-sm text-red-700 mb-2">Selected processing: {selectedProcessing?.name || 'None'}</p>
-        
-        <div className="space-y-2">
-          <button 
-            onClick={() => {
-              console.log('=== DEBUG BUTTON CLICKED ===');
-              console.log('Quote items:', quote.items);
-              if (quote.items.length > 0) {
-                console.log('Calling addProcessingToItem with:', quote.items[0].id, 'proc_paint_custom');
-                addProcessingToItem(quote.items[0].id, 'proc_paint_custom');
-              } else {
-                console.log('No items in quote to test with');
-              }
-            }}
-            className="bg-red-600 text-white px-6 py-3 rounded font-bold text-lg mr-2"
-          >
-            🔧 TEST CUSTOM PAINT
-          </button>
-          
-          <button 
-            onClick={() => {
-              console.log('=== FORCE MODAL TEST ===');
-              const mockProcessing = {
-                id: 'proc_paint_custom',
-                name: 'Custom Paint Color',
-                description: 'Custom color paint finish',
-                category: 'finishing',
-                pricingType: 'percentage' as const,
-                price: 0.25,
-                applicableProductCategories: ['cabinet', 'door'],
-                options: [
-                  {
-                    id: 'paint_color',
-                    name: 'Paint Color',
-                    type: 'color' as const,
-                    required: true,
-                    colorPalette: ['#FFFFFF', '#F5F5F5', '#E5E5E5'],
-                    defaultValue: '#FFFFFF'
-                  }
-                ]
-              };
-              setSelectedProcessing(mockProcessing);
-              setSelectedItemId(quote.items[0]?.id || 'test');
-              setProcessingOptions({});
-              setShowOptionSelector(true);
-            }}
-            className="bg-blue-600 text-white px-6 py-3 rounded font-bold text-lg"
-          >
-            🔧 FORCE MODAL
-          </button>
-        </div>
-      </div>
 
       {/* Quote Items by Room */}
       <div className="space-y-6">
@@ -630,12 +554,10 @@ const ItemRow: React.FC<{
         {availableProcessings.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {availableProcessings.map((processing: any) => {
-              console.log('Rendering processing button:', processing.name, processing.id, 'has options:', processing.options?.length || 0);
               return (
               <button
                 key={processing.id}
                 onClick={() => {
-                  console.log('Processing button clicked:', processing.name);
                   addProcessingToItem(item.id, processing.id);
                 }}
                 className="text-left p-3 border border-gray-200 rounded hover:border-blue-300 hover:bg-blue-50 transition-colors"
