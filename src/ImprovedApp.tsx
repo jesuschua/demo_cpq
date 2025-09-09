@@ -137,7 +137,7 @@ function ImprovedApp() {
     if (!workflow.customer || workflow.rooms.length === 0) return;
 
     const newQuote: Quote = {
-      id: Date.now().toString(),
+      id: `quote_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       customerId: workflow.customer.id,
       rooms: workflow.rooms,
       items: workflow.products,
@@ -208,7 +208,7 @@ function ImprovedApp() {
     if (workflow.currentPhase === 'product_config' && workflow.rooms.length > 0 && !workflow.currentRoomId) {
       setWorkflow(prev => ({ ...prev, currentRoomId: prev.rooms[0].id }));
     }
-  }, [workflow.customer, workflow.rooms, workflow.currentPhase, workflow.products, workflow.currentRoomId]);
+  }, [workflow.customer, workflow.rooms, workflow.currentPhase, workflow.products]);
 
   // Phase-specific handlers
   const handleCustomerSelect = (customer: Customer) => {
@@ -289,7 +289,7 @@ function ImprovedApp() {
       .filter(Boolean);
 
     const newItem: QuoteItem = {
-      id: Date.now().toString(),
+      id: `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       productId,
       roomId: currentRoom.id,
       quantity,
@@ -1065,31 +1065,6 @@ function ImprovedApp() {
               currentRoomId={workflow.currentRoomId}
             />
 
-            <div className="mt-6 flex justify-between">
-              <button
-                onClick={goToPreviousPhase}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
-              >
-                ← Back to Customer
-              </button>
-
-              {workflow.rooms.length > 0 && (
-                <div className="flex space-x-3">
-                  <button
-                    onClick={saveCurrentPhase}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-                  >
-                    Save Room Config
-                  </button>
-                  <button
-                    onClick={proceedToNextPhase}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
-                  >
-                    Proceed to Products →
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         )}
 
@@ -1312,31 +1287,6 @@ function ImprovedApp() {
               </div>
             )}
 
-            <div className="mt-6 flex justify-between">
-              <button
-                onClick={goToPreviousPhase}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
-              >
-                ← Back to Room Setup
-              </button>
-
-              {workflow.products.length > 0 && (
-                <div className="flex space-x-3">
-                  <button
-                    onClick={saveCurrentPhase}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-                  >
-                    Save Product Config
-                  </button>
-                  <button
-                    onClick={proceedToNextPhase}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
-                  >
-                    Proceed to Quote →
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         )}
 

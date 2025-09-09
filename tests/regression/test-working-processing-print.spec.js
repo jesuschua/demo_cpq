@@ -15,7 +15,7 @@ test.describe('Working Processing Print Preview', () => {
     await page.fill('textarea', 'Test room');
     await page.locator('button').filter({ hasText: 'Create Room & Start Quote' }).click();
     await page.waitForTimeout(2000);
-    await page.locator('button').filter({ hasText: 'Proceed to Products →' }).click();
+    await page.locator('button').filter({ hasText: 'Continue →' }).click();
     await page.waitForTimeout(2000);
     
     // Add products
@@ -23,7 +23,7 @@ test.describe('Working Processing Print Preview', () => {
     await page.waitForTimeout(500);
     
     // Go to processing phase
-    await page.locator('button').filter({ hasText: 'Proceed to Quote →' }).click();
+    await page.locator('button').filter({ hasText: 'Continue →' }).click();
     await page.waitForTimeout(2000);
     console.log('✅ Navigated to processing phase');
     

@@ -41,8 +41,8 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
     if (!newRoom.type || !newRoom.frontModelId) return;
 
     const room: Room = {
-      id: editingRoomId || Date.now().toString(),
-      name: newRoom.type,
+      id: editingRoomId || `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: newRoom.description || newRoom.type,
       description: newRoom.description,
       frontModelId: newRoom.frontModelId,
       activatedProcessings: newRoom.activatedProcessings,

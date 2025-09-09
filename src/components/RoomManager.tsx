@@ -38,7 +38,7 @@ const RoomManager: React.FC<RoomManagerProps> = ({
     if (!newRoom.name || !newRoom.frontModelId) return;
 
     const room: Room = {
-      id: Date.now().toString(),
+      id: `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: newRoom.name,
       description: newRoom.description,
       frontModelId: newRoom.frontModelId,

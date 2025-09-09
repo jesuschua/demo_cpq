@@ -49,7 +49,7 @@ const ImprovedRoomManager: React.FC<ImprovedRoomManagerProps> = ({
     if (!newRoom.type || !newRoom.frontModelId) return;
 
     const room: Room = {
-      id: Date.now().toString(),
+      id: `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: newRoom.type,
       description: newRoom.description,
       frontModelId: newRoom.frontModelId,

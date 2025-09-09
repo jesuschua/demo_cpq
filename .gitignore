@@ -23,6 +23,11 @@ Thumbs.db
 # Test results and coverage
 coverage/
 test-results/
+playwright-report/
+
+# Test artifacts and screenshots
+*-test-*.png
+*-test-*.html
 
 # Environment
 .env
