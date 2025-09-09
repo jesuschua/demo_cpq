@@ -8,7 +8,7 @@ import CleanProductCatalog from './components/CleanProductCatalog';
 import LiveProcessingProductManager from './components/LiveProcessingProductManager';
 
 // Define the 5 clear phases
-type WorkflowPhase = 'customer_config' | 'room_config' | 'product_config' | 'processing_config' | 'quote_finalize';
+type WorkflowPhase = 'customer_config' | 'room_config' | 'product_config' | 'processing_config' | 'fees_config';
 type AppView = 'dashboard' | 'workflow';
 
 interface WorkflowState {
@@ -50,13 +50,13 @@ function ImprovedApp() {
         // Can proceed to quote finalize after configuring processings
         return workflow.products.length > 0;
       }
-      case 'quote_finalize': return workflow.quote !== null;
+      case 'fees_config': return workflow.quote !== null;
       default: return false;
     }
   };
 
   const proceedToNextPhase = () => {
-    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'processing_config', 'quote_finalize'];
+    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'];
     const currentIndex = phaseOrder.indexOf(workflow.currentPhase);
     
     if (currentIndex < phaseOrder.length - 1 && canProceedToNextPhase()) {
@@ -72,8 +72,8 @@ function ImprovedApp() {
         createQuoteFromCurrentState();
       }
       
-      // Update quote when moving to quote finalization
-      if (nextPhase === 'quote_finalize') {
+      // Update quote when moving to fees configuration
+      if (nextPhase === 'fees_config') {
         createQuoteFromCurrentState();
       }
       
@@ -89,7 +89,7 @@ function ImprovedApp() {
   };
 
   const goToPreviousPhase = () => {
-    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'quote_finalize'];
+    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'];
     const currentIndex = phaseOrder.indexOf(workflow.currentPhase);
     
     if (currentIndex > 0) {
@@ -104,7 +104,7 @@ function ImprovedApp() {
       case 'room_config': return workflow.rooms;
       case 'product_config': return workflow.products;
       case 'processing_config': return workflow.products;
-      case 'quote_finalize': return workflow.quote;
+      case 'fees_config': return workflow.quote;
       default: return null;
     }
   };
@@ -126,7 +126,7 @@ function ImprovedApp() {
       room_config: 'Room Configuration', 
       product_config: 'Product Configuration',
       processing_config: 'Processing Configuration',
-      quote_finalize: 'Quote'
+      fees_config: 'Fees & Delivery'
     };
     alert(`${phaseNames[workflow.currentPhase]} saved successfully!`);
   };
@@ -789,7 +789,7 @@ function ImprovedApp() {
     const customer = customers.find(c => c.id === quote.customerId);
     if (customer && quote.rooms.length > 0) {
       setWorkflow({
-        currentPhase: 'quote_finalize',
+        currentPhase: 'fees_config',
         customer,
         rooms: quote.rooms,
         currentRoomId: quote.rooms[0].id,
@@ -898,9 +898,9 @@ function ImprovedApp() {
       title: 'Phase 4: Processing Configuration',
       description: 'Configure processing options and customizations'
     },
-    quote_finalize: {
-      title: 'Phase 5: Quote Finalization',
-      description: 'Review, adjust discounts, and finalize quote'
+    fees_config: {
+      title: 'Phase 5: Fees & Delivery Configuration',
+      description: 'Configure tiered delivery fees and environmental fees'
     }
   };
 
@@ -930,10 +930,10 @@ function ImprovedApp() {
             
             {/* Phase Progress Indicator */}
             <div className="flex items-center space-x-2">
-              {(['customer_config', 'room_config', 'product_config', 'processing_config', 'quote_finalize'] as WorkflowPhase[]).map((phase, index) => {
-                const phaseNames = ['Customer', 'Room', 'Products', 'Processing', 'Quote'];
+              {(['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'] as WorkflowPhase[]).map((phase, index) => {
+                const phaseNames = ['Customer', 'Room', 'Products', 'Processing', 'Fees'];
                 const isActive = workflow.currentPhase === phase;
-                const isCompleted = (['customer_config', 'room_config', 'product_config', 'processing_config', 'quote_finalize'] as WorkflowPhase[]).indexOf(workflow.currentPhase) > index;
+                const isCompleted = (['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) > index;
                 
                 return (
                   <div key={phase} className="flex items-center">
@@ -1351,23 +1351,113 @@ function ImprovedApp() {
           </div>
         )}
 
-        {/* Phase 5: Quote Finalization */}
-        {workflow.currentPhase === 'quote_finalize' && workflow.quote && (
+        {/* Phase 5: Fees & Delivery Configuration */}
+        {workflow.currentPhase === 'fees_config' && workflow.quote && (
           <div>
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Finalize Quote</h2>
-              <p className="text-gray-600">Review and configure final quote details</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Configure Fees & Delivery</h2>
+              <p className="text-gray-600">Set tiered delivery fees and environmental fees for your quote</p>
             </div>
 
-            <LiveProcessingProductManager
-              quote={workflow.quote}
-              rooms={workflow.quote.rooms}
-              products={products}
-              processings={processings}
-              processingRules={processingRules}
-              productDependencies={productDependencies}
-              onQuoteUpdate={handleQuoteUpdate}
-            />
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Delivery Fees Section */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Delivery Fees</h3>
+                <p className="text-gray-600 mb-4">Configure tiered delivery fees based on order value</p>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tier 1 (Up to $500)</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tier 2 ($500 - $1000)</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tier 3 ($1000+)</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Environmental Fees Section */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Environmental Fees</h3>
+                <p className="text-gray-600 mb-4">Configure environmental and sustainability fees</p>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Carbon Offset Fee (%)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Sustainability Fee ($)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="eco-friendly"
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="eco-friendly" className="ml-2 block text-sm text-gray-700">
+                      Apply eco-friendly packaging fee (+$25)
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quote Summary */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Quote Summary</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span>${workflow.quote?.subtotal?.toFixed(2) || '0.00'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Delivery Fee:</span>
+                    <span>$0.00</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Environmental Fees:</span>
+                    <span>$0.00</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-lg border-t pt-2">
+                    <span>Total:</span>
+                    <span>${workflow.quote?.finalTotal?.toFixed(2) || '0.00'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
           </div>
@@ -1523,12 +1613,12 @@ function ImprovedApp() {
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
-                  Phase {(['customer_config', 'room_config', 'product_config', 'quote_finalize'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1} of 4
+                  Phase {(['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1} of 5
                 </span>
                 <div className="w-32 bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(((['customer_config', 'room_config', 'product_config', 'quote_finalize'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1) / 4) * 100}%` }}
+                    style={{ width: `${(((['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1) / 5) * 100}%` }}
                   ></div>
                 </div>
               </div>
@@ -1560,7 +1650,7 @@ function ImprovedApp() {
                   </button>
                 )}
                 
-                {canProceedToNextPhase() && workflow.currentPhase !== 'quote_finalize' && (
+                {canProceedToNextPhase() && workflow.currentPhase !== 'fees_config' && (
                   <button
                     onClick={proceedToNextPhase}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm flex items-center"
@@ -1569,7 +1659,7 @@ function ImprovedApp() {
                   </button>
                 )}
 
-                {workflow.currentPhase === 'quote_finalize' && workflow.quote && (
+                {workflow.currentPhase === 'fees_config' && workflow.quote && (
                   <div className="flex space-x-2">
                     <button
                       onClick={handleSaveQuote}
