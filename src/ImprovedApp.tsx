@@ -146,6 +146,18 @@ function ImprovedApp() {
       orderDiscount: 0,
       subtotal: 0,
       totalDiscount: 0,
+      deliveryFees: {
+        tier1: 0,
+        tier2: 0,
+        tier3: 0,
+        calculated: 0
+      },
+      environmentalFees: {
+        carbonOffsetPercentage: 0,
+        sustainabilityFee: 0,
+        ecoFriendlyPackaging: false,
+        calculated: 0
+      },
       finalTotal: 0,
       status: 'draft',
       createdAt: new Date(),
@@ -163,16 +175,50 @@ function ImprovedApp() {
     const subtotal = quote.items.reduce((sum, item) => sum + item.totalPrice, 0);
     const customerDiscount = subtotal * (quote.customerDiscount / 100);
     const totalDiscount = customerDiscount + quote.orderDiscount;
-    const finalTotal = subtotal - totalDiscount;
+    
+    // Calculate delivery fees based on subtotal
+    let deliveryFee = 0;
+    if (subtotal <= 500) {
+      deliveryFee = quote.deliveryFees.tier1;
+    } else if (subtotal <= 1000) {
+      deliveryFee = quote.deliveryFees.tier2;
+    } else {
+      deliveryFee = quote.deliveryFees.tier3;
+    }
+    
+    // Calculate environmental fees
+    const carbonOffsetFee = subtotal * (quote.environmentalFees.carbonOffsetPercentage / 100);
+    const ecoFriendlyFee = quote.environmentalFees.ecoFriendlyPackaging ? 25 : 0;
+    const totalEnvironmentalFees = quote.environmentalFees.sustainabilityFee + carbonOffsetFee + ecoFriendlyFee;
+    
+    // Calculate final total including all fees
+    const totalFees = deliveryFee + totalEnvironmentalFees;
+    const finalTotal = subtotal - totalDiscount + totalFees;
 
     return {
       ...quote,
       subtotal,
       totalDiscount,
+      deliveryFees: {
+        ...quote.deliveryFees,
+        calculated: deliveryFee
+      },
+      environmentalFees: {
+        ...quote.environmentalFees,
+        calculated: totalEnvironmentalFees
+      },
       finalTotal,
       requiresApproval: finalTotal > quote.approvalThreshold
     };
   };
+
+  // Recalculate quote when fees change
+  useEffect(() => {
+    if (workflow.quote && workflow.currentPhase === 'fees_config') {
+      const updatedQuote = recalculateQuote(workflow.quote);
+      setWorkflow(prev => ({ ...prev, quote: updatedQuote }));
+    }
+  }, [workflow.quote?.deliveryFees, workflow.quote?.environmentalFees, workflow.currentPhase]);
 
   // Cascading updates when stepping back
   useEffect(() => {
@@ -763,6 +809,18 @@ function ImprovedApp() {
                   <td class="value discount">-$${quote.orderDiscount.toFixed(2)}</td>
                 </tr>
                 ` : ''}
+                ${quote.deliveryFees.calculated > 0 ? `
+                <tr>
+                  <td class="label">Delivery Fee:</td>
+                  <td class="value">$${quote.deliveryFees.calculated.toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                ${quote.environmentalFees.calculated > 0 ? `
+                <tr>
+                  <td class="label">Environmental Fees:</td>
+                  <td class="value">$${quote.environmentalFees.calculated.toFixed(2)}</td>
+                </tr>
+                ` : ''}
                 <tr class="total-row">
                   <td class="label">FINAL TOTAL:</td>
                   <td class="value">$${quote.finalTotal.toFixed(2)}</td>
@@ -1309,6 +1367,18 @@ function ImprovedApp() {
                 orderDiscount: 0,
                 subtotal: 0, 
                 totalDiscount: 0,
+                deliveryFees: {
+                  tier1: 0,
+                  tier2: 0,
+                  tier3: 0,
+                  calculated: 0
+                },
+                environmentalFees: {
+                  carbonOffsetPercentage: 0,
+                  sustainabilityFee: 0,
+                  ecoFriendlyPackaging: false,
+                  calculated: 0
+                },
                 finalTotal: 0,
                 status: 'draft' as const,
                 createdAt: new Date(),
@@ -1348,7 +1418,18 @@ function ImprovedApp() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Tier 1 (Up to $500)</label>
                       <input
                         type="number"
-                        placeholder="0.00"
+                        step="0.01"
+                        value={workflow.quote?.deliveryFees.tier1 || 0}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          setWorkflow(prev => ({
+                            ...prev,
+                            quote: prev.quote ? {
+                              ...prev.quote,
+                              deliveryFees: { ...prev.quote.deliveryFees, tier1: value }
+                            } : null
+                          }));
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1356,7 +1437,18 @@ function ImprovedApp() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Tier 2 ($500 - $1000)</label>
                       <input
                         type="number"
-                        placeholder="0.00"
+                        step="0.01"
+                        value={workflow.quote?.deliveryFees.tier2 || 0}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          setWorkflow(prev => ({
+                            ...prev,
+                            quote: prev.quote ? {
+                              ...prev.quote,
+                              deliveryFees: { ...prev.quote.deliveryFees, tier2: value }
+                            } : null
+                          }));
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1364,7 +1456,18 @@ function ImprovedApp() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Tier 3 ($1000+)</label>
                       <input
                         type="number"
-                        placeholder="0.00"
+                        step="0.01"
+                        value={workflow.quote?.deliveryFees.tier3 || 0}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          setWorkflow(prev => ({
+                            ...prev,
+                            quote: prev.quote ? {
+                              ...prev.quote,
+                              deliveryFees: { ...prev.quote.deliveryFees, tier3: value }
+                            } : null
+                          }));
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1384,7 +1487,17 @@ function ImprovedApp() {
                       <input
                         type="number"
                         step="0.01"
-                        placeholder="0.00"
+                        value={workflow.quote?.environmentalFees.carbonOffsetPercentage || 0}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          setWorkflow(prev => ({
+                            ...prev,
+                            quote: prev.quote ? {
+                              ...prev.quote,
+                              environmentalFees: { ...prev.quote.environmentalFees, carbonOffsetPercentage: value }
+                            } : null
+                          }));
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1393,7 +1506,17 @@ function ImprovedApp() {
                       <input
                         type="number"
                         step="0.01"
-                        placeholder="0.00"
+                        value={workflow.quote?.environmentalFees.sustainabilityFee || 0}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          setWorkflow(prev => ({
+                            ...prev,
+                            quote: prev.quote ? {
+                              ...prev.quote,
+                              environmentalFees: { ...prev.quote.environmentalFees, sustainabilityFee: value }
+                            } : null
+                          }));
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1403,6 +1526,16 @@ function ImprovedApp() {
                     <input
                       type="checkbox"
                       id="eco-friendly"
+                      checked={workflow.quote?.environmentalFees.ecoFriendlyPackaging || false}
+                      onChange={(e) => {
+                        setWorkflow(prev => ({
+                          ...prev,
+                          quote: prev.quote ? {
+                            ...prev.quote,
+                            environmentalFees: { ...prev.quote.environmentalFees, ecoFriendlyPackaging: e.target.checked }
+                          } : null
+                        }));
+                      }}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <label htmlFor="eco-friendly" className="ml-2 block text-sm text-gray-700">
@@ -1420,13 +1553,25 @@ function ImprovedApp() {
                     <span>Subtotal:</span>
                     <span>${workflow.quote?.subtotal?.toFixed(2) || '0.00'}</span>
                   </div>
+                  {workflow.quote?.customerDiscount > 0 && (
+                    <div className="flex justify-between text-red-600">
+                      <span>Customer Discount ({workflow.quote.customerDiscount}%):</span>
+                      <span>-${((workflow.quote.subtotal * workflow.quote.customerDiscount) / 100).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {workflow.quote?.orderDiscount > 0 && (
+                    <div className="flex justify-between text-red-600">
+                      <span>Order Discount:</span>
+                      <span>-${workflow.quote.orderDiscount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span>Delivery Fee:</span>
-                    <span>$0.00</span>
+                    <span>${workflow.quote?.deliveryFees.calculated?.toFixed(2) || '0.00'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Environmental Fees:</span>
-                    <span>$0.00</span>
+                    <span>${workflow.quote?.environmentalFees.calculated?.toFixed(2) || '0.00'}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-lg border-t pt-2">
                     <span>Total:</span>

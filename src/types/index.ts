@@ -156,6 +156,19 @@ export interface Quote {
   orderDiscount: number; // fixed amount
   subtotal: number;
   totalDiscount: number;
+  // Fee fields
+  deliveryFees: {
+    tier1: number; // Up to $500
+    tier2: number; // $500 - $1000
+    tier3: number; // $1000+
+    calculated: number; // Actual fee based on subtotal
+  };
+  environmentalFees: {
+    carbonOffsetPercentage: number;
+    sustainabilityFee: number;
+    ecoFriendlyPackaging: boolean;
+    calculated: number; // Total environmental fees
+  };
   finalTotal: number;
   status: 'draft' | 'pending_approval' | 'approved' | 'sent' | 'accepted' | 'rejected';
   createdAt: Date;

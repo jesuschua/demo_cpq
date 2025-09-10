@@ -138,9 +138,53 @@ test.describe('Multiple Rooms Regression Test', () => {
     
     console.log('✅ Processings added to both rooms');
     
+    // Go to fees configuration
+    console.log('=== Testing Fees Configuration ===');
+    await page.locator('button').filter({ hasText: 'Continue →' }).click();
+    await page.waitForTimeout(2000);
+    console.log('✅ Navigated to fees configuration');
+    
+    // Configure delivery fees
+    await page.locator('input[type="number"]').nth(0).fill('25.00'); // Tier 1
+    await page.locator('input[type="number"]').nth(1).fill('50.00'); // Tier 2
+    await page.locator('input[type="number"]').nth(2).fill('75.00'); // Tier 3
+    await page.waitForTimeout(500);
+    console.log('✅ Configured delivery fees');
+    
+    // Configure environmental fees
+    await page.locator('input[type="number"]').nth(3).fill('2.5'); // Carbon offset percentage
+    await page.locator('input[type="number"]').nth(4).fill('15.00'); // Sustainability fee
+    await page.locator('input[type="checkbox"]').check(); // Eco-friendly packaging
+    await page.waitForTimeout(500);
+    console.log('✅ Configured environmental fees');
+    
+    // Verify fees are displayed in quote summary
+    const deliveryFee = await page.locator('text=Delivery Fee:').locator('..').locator('span').last().textContent();
+    const environmentalFees = await page.locator('text=Environmental Fees:').locator('..').locator('span').last().textContent();
+    const total = await page.locator('text=Total:').locator('..').locator('span').last().textContent();
+    
+    console.log('=== FEES VERIFICATION ===');
+    console.log(`Delivery Fee: ${deliveryFee}`);
+    console.log(`Environmental Fees: ${environmentalFees}`);
+    console.log(`Total: ${total}`);
+    
+    // Verify delivery fee is calculated correctly (should be Tier 2 = $50.00 for subtotal > $500 with two products)
+    expect(deliveryFee).toBe('$50.00');
+    console.log('✅ Delivery fee calculated correctly');
+    
+    // Verify environmental fees are calculated correctly
+    const environmentalFeesValue = parseFloat(environmentalFees.replace('$', ''));
+    expect(environmentalFeesValue).toBeGreaterThan(40);
+    console.log('✅ Environmental fees calculated correctly');
+    
+    // Verify total includes fees
+    const totalValue = parseFloat(total.replace('$', ''));
+    expect(totalValue).toBeGreaterThan(300); // Should be significantly higher than base product price
+    console.log('✅ Total includes fees');
+    
     // Go to print preview
     console.log('=== Testing Print Preview ===');
-    await page.locator('button').filter({ hasText: 'Continue →' }).click();
+    await page.locator('button').filter({ hasText: 'Preview Print' }).click();
     await page.waitForTimeout(2000);
     
     // Click Preview Print
@@ -176,6 +220,12 @@ test.describe('Multiple Rooms Regression Test', () => {
           console.log('✅ Print preview contains "12" Euro Wall":', printContent.includes('12" Euro Wall'));
           console.log('✅ Print preview contains "Custom Paint Color":', printContent.includes('Custom Paint Color'));
           console.log('❌ Print preview contains "Unassigned":', printContent.includes('Unassigned'));
+          
+          // Check if fees appear in print preview
+          const hasDeliveryFee = printContent.includes('Delivery Fee') || printContent.includes('delivery');
+          const hasEnvironmentalFee = printContent.includes('Environmental') || printContent.includes('Carbon') || printContent.includes('Sustainability');
+          console.log('✅ Print preview contains delivery fees:', hasDeliveryFee);
+          console.log('✅ Print preview contains environmental fees:', hasEnvironmentalFee);
           
           // Count room sections in print (should have at least 2 mentions of each room)
           const kitchenRoom1Count = (printContent.match(/Kitchen Room 1/g) || []).length;

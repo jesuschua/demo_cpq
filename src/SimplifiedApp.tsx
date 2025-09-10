@@ -45,6 +45,18 @@ function SimplifiedApp() {
       orderDiscount: 0,
       subtotal: 0,
       totalDiscount: 0,
+      deliveryFees: {
+        tier1: 0,
+        tier2: 0,
+        tier3: 0,
+        calculated: 0
+      },
+      environmentalFees: {
+        carbonOffsetPercentage: 0,
+        sustainabilityFee: 0,
+        ecoFriendlyPackaging: false,
+        calculated: 0
+      },
       finalTotal: 0,
       status: 'draft',
       createdAt: new Date(),
