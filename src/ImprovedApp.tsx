@@ -349,14 +349,16 @@ function ImprovedApp() {
       const updatedQuote = prev.quote ? {
         ...prev.quote,
         items: updatedProducts,
-        subtotal: updatedProducts.reduce((sum, item) => sum + item.totalPrice, 0),
-        finalTotal: updatedProducts.reduce((sum, item) => sum + item.totalPrice, 0) * (1 - (prev.quote.customerDiscount + prev.quote.orderDiscount) / 100)
+        subtotal: updatedProducts.reduce((sum, item) => sum + item.totalPrice, 0)
       } : null;
+      
+      // Use recalculateQuote to properly calculate final total with fees
+      const finalQuote = updatedQuote ? recalculateQuote(updatedQuote) : null;
       
       return {
         ...prev,
         products: updatedProducts,
-        quote: updatedQuote
+        quote: finalQuote
       };
     });
   };
@@ -367,23 +369,50 @@ function ImprovedApp() {
 
   // Remove product from workflow
   const removeProduct = (productId: string) => {
-    setWorkflow(prev => ({
-      ...prev,
-      products: prev.products.filter(item => item.productId !== productId)
-    }));
+    setWorkflow(prev => {
+      const updatedProducts = prev.products.filter(item => item.productId !== productId);
+      const updatedQuote = prev.quote ? {
+        ...prev.quote,
+        items: updatedProducts,
+        subtotal: updatedProducts.reduce((sum, item) => sum + item.totalPrice, 0)
+      } : null;
+      
+      // Use recalculateQuote to properly calculate final total with fees
+      const finalQuote = updatedQuote ? recalculateQuote(updatedQuote) : null;
+      
+      return {
+        ...prev,
+        products: updatedProducts,
+        quote: finalQuote
+      };
+    });
   };
 
   const adjustProductQuantity = (productId: string, change: number) => {
-    setWorkflow(prev => ({
-      ...prev,
-      products: prev.products.map(item => {
+    setWorkflow(prev => {
+      const updatedProducts = prev.products.map(item => {
         if (item.productId === productId) {
           const newQuantity = item.quantity + change;
           return { ...item, quantity: newQuantity };
         }
         return item;
-      }).filter(item => item.quantity > 0) // Remove items with 0 or negative quantity
-    }));
+      }).filter(item => item.quantity > 0); // Remove items with 0 or negative quantity
+      
+      const updatedQuote = prev.quote ? {
+        ...prev.quote,
+        items: updatedProducts,
+        subtotal: updatedProducts.reduce((sum, item) => sum + item.totalPrice, 0)
+      } : null;
+      
+      // Use recalculateQuote to properly calculate final total with fees
+      const finalQuote = updatedQuote ? recalculateQuote(updatedQuote) : null;
+      
+      return {
+        ...prev,
+        products: updatedProducts,
+        quote: finalQuote
+      };
+    });
   };
 
   // Print quote - Enhanced professional print functionality
