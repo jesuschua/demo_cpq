@@ -9,6 +9,8 @@ interface CleanProductCatalogProps {
   onProductSelect: (product: Product, quantity: number) => void;
   hasQuote: boolean;
   onCreateQuote: () => void;
+  selectedCategory: string;
+  onCategoryChange: (category: string) => void;
 }
 
 const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
@@ -18,9 +20,10 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
   onModelSelect,
   onProductSelect,
   hasQuote,
-  onCreateQuote
+  onCreateQuote,
+  selectedCategory,
+  onCategoryChange
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const filteredProducts = useMemo(() => {
     let filtered = products.filter(p => 
       !selectedModel || p.modelId === selectedModel.id
@@ -62,36 +65,26 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
 
       {selectedModel && (
         <>
-          {/* Header */}
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">{selectedModel.name}</h2>
-                <p className="text-sm text-gray-600 capitalize">{selectedModel.category} style</p>
-              </div>
-              <div className="flex items-center space-x-4">
+          {/* Clean Product Grid - Scrollable */}
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-medium text-gray-900">
+                  Available Products ({filteredProducts.length})
+                </h3>
                 <select
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => onCategoryChange(e.target.value)}
                 >
-                  {categories.map((cat) => (
+                  {['all', 'cabinet', 'hardware', 'countertop', 'appliance', 'accessory'].map((cat) => (
                     <option key={cat} value={cat}>
                       {cat === 'all' ? 'All Products' : cat.charAt(0).toUpperCase() + cat.slice(1)}
                     </option>
                   ))}
                 </select>
               </div>
-            </div>
-          </div>
-
-          {/* Clean Product Grid - Scrollable */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="font-medium text-gray-900">
-                Available Products ({filteredProducts.length})
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">Click on products to add them to your quote</p>
+              <p className="text-sm text-gray-600">Click on products to add them to your quote</p>
             </div>
             
             <div className="h-96 overflow-y-auto p-4">
