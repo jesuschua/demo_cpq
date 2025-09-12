@@ -710,6 +710,7 @@ function ImprovedApp() {
                         const manualProcessings = item.appliedProcessings.filter((ap: any) => !ap.isInherited);
                         
                         
+                        
                         return `
                           <tr class="product-row">
                             <td>
@@ -1136,25 +1137,25 @@ function ImprovedApp() {
                     <span className="text-sm text-gray-600">Room:</span>
                     <div className="flex space-x-1">
                       {workflow.rooms.map((room) => {
-                        const roomProductCount = workflow.products.filter(p => p.roomId === room.id).length;
-                        const isActive = workflow.currentRoomId === room.id;
-                        
-                        return (
-                          <button
-                            key={room.id}
-                            onClick={() => handleRoomSelect(room.id)}
+                  const roomProductCount = workflow.products.filter(p => p.roomId === room.id).length;
+                  const isActive = workflow.currentRoomId === room.id;
+                  
+                  return (
+                    <button
+                      key={room.id}
+                      onClick={() => handleRoomSelect(room.id)}
                             className={`px-2 py-1 rounded text-sm border transition-all ${
-                              isActive 
+                        isActive 
                                 ? 'border-blue-500 bg-blue-50 text-blue-900 font-medium' 
                                 : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700'
                             }`}
                           >
                             {room.name} ({roomProductCount})
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {!workflow.currentRoomId && (
+                    </button>
+                  );
+                })}
+              </div>
+              {!workflow.currentRoomId && (
                       <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
                         Select room
                       </span>
@@ -1168,8 +1169,8 @@ function ImprovedApp() {
                       <span className="text-sm font-medium text-gray-900">
                         {getCurrentRoomModel()?.name}
                       </span>
-                    </div>
-                  )}
+                </div>
+              )}
                 </div>
                 
                 {/* Right side - Room count */}
@@ -1277,7 +1278,7 @@ function ImprovedApp() {
                       }));
                     }}
                   />
-                </div>
+                            </div>
                 
                 {/* Live Order Grid - Center Panel (50%) */}
                 <div className="lg:col-span-2">
@@ -1341,8 +1342,8 @@ function ImprovedApp() {
                       }));
                     }}
                   />
-                </div>
-                
+                  </div>
+
                 {/* Price Summary - Right Panel (25%) */}
                 <div className="lg:col-span-1">
                   <div className="bg-white rounded-lg shadow p-4 h-full">
@@ -1362,14 +1363,14 @@ function ImprovedApp() {
                       <h4 className="text-xs font-medium text-gray-700 mb-2">Price by Room</h4>
                       {workflow.rooms.length > 0 ? (
                         <div className="space-y-2 text-xs">
-                          {workflow.rooms.map((room) => {
-                            const roomProducts = workflow.products.filter(p => p.roomId === room.id);
-                            const roomTotal = roomProducts.reduce((sum, product) => sum + product.totalPrice, 0);
+                      {workflow.rooms.map((room) => {
+                        const roomProducts = workflow.products.filter(p => p.roomId === room.id);
+                        const roomTotal = roomProducts.reduce((sum, product) => sum + product.totalPrice, 0);
                             const isActive = room.id === workflow.currentRoomId;
-                            
-                            return (
-                              <div 
-                                key={room.id} 
+                        
+                        return (
+                          <div 
+                            key={room.id} 
                                 className={`p-2 rounded border ${
                                   isActive 
                                     ? 'bg-blue-50 border-blue-200' 
@@ -1382,36 +1383,36 @@ function ImprovedApp() {
                                     {isActive && <span className="ml-1 text-blue-600">●</span>}
                                   </span>
                                   <span className={`font-semibold ${isActive ? 'text-blue-600' : 'text-green-600'}`}>
-                                    ${roomTotal.toFixed(2)}
+                                  ${roomTotal.toFixed(2)}
                                   </span>
-                                </div>
+                              </div>
                                 <div className="text-gray-500">
                                   {roomProducts.length} product{roomProducts.length !== 1 ? 's' : ''}
-                                </div>
-                              </div>
-                            );
-                          })}
-                          
+                            </div>
+                          </div>
+                        );
+                      })}
+                      
                           {/* Grand Total */}
                           <div className="border-t border-gray-200 pt-2 mt-2">
                             <div className="flex justify-between text-sm font-semibold">
                               <span className="text-gray-900">Total:</span>
-                              <span className="text-green-600">
-                                ${workflow.products.reduce((sum, product) => sum + product.totalPrice, 0).toFixed(2)}
-                              </span>
-                            </div>
-                          </div>
+                          <span className="text-green-600">
+                            ${workflow.products.reduce((sum, product) => sum + product.totalPrice, 0).toFixed(2)}
+                          </span>
                         </div>
+                      </div>
+                    </div>
                       ) : (
                         <div className="text-center text-gray-500">
                           <p className="text-xs">No rooms added yet</p>
-                        </div>
-                      )}
-                    </div>
                   </div>
+                      )}
                 </div>
               </div>
-            )}
+                </div>
+          </div>
+        )}
 
           </div>
         )}
