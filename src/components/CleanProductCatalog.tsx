@@ -9,6 +9,8 @@ interface CleanProductCatalogProps {
   onProductSelect: (product: Product, quantity: number) => void;
   hasQuote: boolean;
   onCreateQuote: () => void;
+  selectedCategory: string;
+  onCategoryChange: (category: string) => void;
 }
 
 const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
@@ -18,9 +20,10 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
   onModelSelect,
   onProductSelect,
   hasQuote,
-  onCreateQuote
+  onCreateQuote,
+  selectedCategory,
+  onCategoryChange
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const filteredProducts = useMemo(() => {
     let filtered = products.filter(p => 
       !selectedModel || p.modelId === selectedModel.id
@@ -62,29 +65,6 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
 
       {selectedModel && (
         <>
-          {/* Header */}
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">{selectedModel.name}</h2>
-                <p className="text-sm text-gray-600 capitalize">{selectedModel.category} style</p>
-              </div>
-              <div className="flex items-center space-x-4">
-                <select
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat === 'all' ? 'All Products' : cat.charAt(0).toUpperCase() + cat.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
           {/* Clean Product Grid - Scrollable */}
           <div className="bg-white rounded-lg shadow">
             <div className="p-4 border-b border-gray-200">

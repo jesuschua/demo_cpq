@@ -37,6 +37,8 @@ function ImprovedApp() {
     savedStates: {}
   });
   
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  
 
   // Phase progression with validation
   const canProceedToNextPhase = () => {
@@ -1129,83 +1131,78 @@ function ImprovedApp() {
         {/* Phase 3: Product Configuration */}
         {workflow.currentPhase === 'product_config' && workflow.rooms.length > 0 && (
           <div>
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Configure Products</h2>
-              <p className="text-gray-600">
-                Total Rooms: <span className="font-medium">{workflow.rooms.length}</span>
-              </p>
-            </div>
-
-            {/* Room Selector */}
-            <div className="bg-white rounded-lg shadow mb-6 p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Select Room to Configure</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {workflow.rooms.map((room, index) => {
-                  const roomModel = models.find(m => m.id === room.frontModelId);
-                  const roomProductCount = workflow.products.filter(p => p.roomId === room.id).length;
-                  const isActive = workflow.currentRoomId === room.id;
+            {/* Single Cohesive Header Bar */}
+            <div className="bg-white rounded-lg shadow mb-4 p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-6">
+                  <h2 className="text-lg font-semibold text-gray-900">Configure Products</h2>
                   
-                  return (
-                    <button
-                      key={room.id}
-                      onClick={() => handleRoomSelect(room.id)}
-                      className={`p-4 rounded-lg border-2 text-left transition-all ${
-                        isActive 
-                          ? 'border-blue-500 bg-blue-50 shadow-md' 
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className={`font-semibold ${isActive ? 'text-blue-900' : 'text-gray-900'}`}>
-                          {room.name}
-                        </h4>
-                        {isActive && (
-                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                            Active
-                          </span>
-                        )}
-                      </div>
-                      {room.description && (
-                        <p className="text-sm text-gray-700 mb-2 italic">
-                          "{room.description}"
-                        </p>
-                      )}
-                      <p className="text-sm text-gray-600 mb-1">
-                        Style: {roomModel?.name}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Products: {roomProductCount}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-              {!workflow.currentRoomId && (
-                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    👆 Select a room above to start adding products
-                  </p>
+                  {/* Room Selection */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Room:</span>
+                    <div className="flex space-x-1">
+                      {workflow.rooms.map((room) => {
+                        const roomProductCount = workflow.products.filter(p => p.roomId === room.id).length;
+                        const isActive = workflow.currentRoomId === room.id;
+                        
+                        return (
+                          <button
+                            key={room.id}
+                            onClick={() => handleRoomSelect(room.id)}
+                            className={`px-2 py-1 rounded text-sm border transition-all ${
+                              isActive 
+                                ? 'border-blue-500 bg-blue-50 text-blue-900 font-medium' 
+                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700'
+                            }`}
+                          >
+                            {room.name} ({roomProductCount})
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {!workflow.currentRoomId && (
+                      <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
+                        Select room
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Style Info */}
+                  {workflow.currentRoomId && getCurrentRoomModel() && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600">Style:</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {getCurrentRoomModel()?.name}
+                      </span>
+                    </div>
+                  )}
                 </div>
-              )}
+                
+                {/* Right side - Room count and category filter */}
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-500">({workflow.rooms.length} rooms)</span>
+                  {workflow.currentRoomId && (
+                    <select
+                      className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                    >
+                      {['all', 'cabinet', 'hardware', 'countertop', 'appliance', 'accessory'].map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat === 'all' ? 'All Products' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Product Configuration for Selected Room */}
             {workflow.currentRoomId && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <div className="bg-white rounded-lg shadow p-4 mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Adding Products to: <span className="text-blue-600">{getCurrentRoom()?.name}</span>
-                    </h3>
-                    {getCurrentRoom()?.description && (
-                      <p className="text-sm text-gray-700 mb-2 italic">
-                        Room Description: "{getCurrentRoom()?.description}"
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-600">
-                      Style: {getCurrentRoomModel()?.name} • Products will inherit this room's configuration
-                    </p>
-                  </div>
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Main Product Area - Takes up most space */}
+                <div className="lg:col-span-3">
                   <CleanProductCatalog
                     models={models}
                     products={products}
@@ -1214,131 +1211,59 @@ function ImprovedApp() {
                     onProductSelect={(product, quantity) => handleProductAdd(product.id, quantity)}
                     hasQuote={true}
                     onCreateQuote={() => {}}
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
                   />
                 </div>
                 
-                <div className="space-y-6">
-                  {/* Current Room Products */}
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      {getCurrentRoom()?.name} Products
-                    </h3>
-                    {(() => {
-                      const currentRoomProducts = workflow.products.filter(p => p.roomId === workflow.currentRoomId);
-                      return currentRoomProducts.length === 0 ? (
-                        <div className="text-center py-6 text-gray-500">
-                          <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                          </svg>
-                          <p className="text-sm">No products added to this room</p>
+                {/* Single Efficient Sidebar */}
+                <div className="lg:col-span-1">
+                  <div className="bg-white rounded-lg shadow p-4">
+                    {/* Header Section */}
+                    <div className="border-b border-gray-200 pb-3 mb-4">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                        {getCurrentRoom()?.name}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {getCurrentRoomModel()?.name} • {workflow.products.filter(p => p.roomId === workflow.currentRoomId).length} products
+                      </p>
+                    </div>
+
+
+                    {/* Quote Summary Section */}
+                    <div className="border-t border-gray-200 pt-3">
+                      <h4 className="text-xs font-medium text-gray-700 mb-2">Quote Summary</h4>
+                      {workflow.quote ? (
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Items:</span>
+                            <span className="font-medium">{workflow.quote.items.length}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Subtotal:</span>
+                            <span className="font-medium">${workflow.quote.subtotal?.toFixed(2) || '0.00'}</span>
+                          </div>
+                          <div className="flex justify-between text-red-600">
+                            <span>Discount:</span>
+                            <span>-${((workflow.quote.subtotal || 0) * (workflow.quote.customerDiscount / 100) + (workflow.quote.orderDiscount || 0)).toFixed(2)}</span>
+                          </div>
+                          <div className="border-t border-gray-200 pt-1">
+                            <div className="flex justify-between text-sm font-semibold">
+                              <span>Total:</span>
+                              <span className="text-green-600">${workflow.quote.finalTotal?.toFixed(2) || '0.00'}</span>
+                            </div>
+                          </div>
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                          {currentRoomProducts.map((product) => {
-                            const productDetails = products.find(p => p.id === product.productId);
-                            return (
-                              <div key={product.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                <div className="flex justify-between items-start mb-2">
-                                  <div className="flex-1">
-                                    <h4 className="text-sm font-medium text-gray-900">{productDetails?.name}</h4>
-                                    <p className="text-xs text-gray-600">${productDetails?.basePrice.toFixed(2)} each</p>
-                                  </div>
-                                  <button
-                                    onClick={() => removeProduct(product.productId)}
-                                    className="text-red-600 hover:text-red-800 text-xs"
-                                  >
-                                    Remove
-                                  </button>
-                                </div>
-                                
-                                {/* Quantity Controls */}
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs text-gray-600">Quantity:</span>
-                                  <div className="flex items-center space-x-2">
-                                    <button
-                                      onClick={() => adjustProductQuantity(product.productId, -1)}
-                                      className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 text-sm"
-                                    >
-                                      −
-                                    </button>
-                                    <span className="text-sm font-medium w-8 text-center">{product.quantity}</span>
-                                    <button
-                                      onClick={() => adjustProductQuantity(product.productId, 1)}
-                                      className="w-6 h-6 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center text-white text-sm"
-                                    >
-                                      +
-                                    </button>
-                                  </div>
-                                </div>
-                                
-                                {/* Total for this product */}
-                                <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200">
-                                  <span className="text-xs text-gray-600">Total:</span>
-                                  <span className="text-sm font-semibold text-green-600">
-                                    ${product.totalPrice.toFixed(2)}
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                          
-                          <div className="border-t border-gray-200 pt-3 mt-4">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Room Total:</span>
-                              <span className="font-medium text-green-600">
-                                ${currentRoomProducts.reduce((sum, product) => sum + product.totalPrice, 0).toFixed(2)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-
-                  {/* All Rooms Summary */}
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">All Rooms Summary</h3>
-                    <div className="space-y-3">
-                      {workflow.rooms.map((room) => {
-                        const roomProducts = workflow.products.filter(p => p.roomId === room.id);
-                        const roomTotal = roomProducts.reduce((sum, product) => sum + product.totalPrice, 0);
-                        
-                        return (
-                          <div 
-                            key={room.id} 
-                            className={`p-3 rounded border cursor-pointer transition-colors ${
-                              room.id === workflow.currentRoomId 
-                                ? 'border-blue-500 bg-blue-50' 
-                                : 'border-gray-200 hover:bg-gray-50'
-                            }`}
-                            onClick={() => handleRoomSelect(room.id)}
+                        <div className="text-center">
+                          <button
+                            onClick={createQuoteFromCurrentState}
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs"
                           >
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <h4 className="font-medium text-gray-900">{room.name}</h4>
-                                <p className="text-xs text-gray-600">{roomProducts.length} products</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm font-semibold text-green-600">
-                                  ${roomTotal.toFixed(2)}
-                                </p>
-                                {room.id === workflow.currentRoomId && (
-                                  <p className="text-xs text-blue-600">Active</p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      
-                      <div className="border-t border-gray-200 pt-3 mt-4">
-                        <div className="flex justify-between text-base font-semibold">
-                          <span className="text-gray-900">Grand Total:</span>
-                          <span className="text-green-600">
-                            ${workflow.products.reduce((sum, product) => sum + product.totalPrice, 0).toFixed(2)}
-                          </span>
+                            Create Quote
+                          </button>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1584,149 +1509,6 @@ function ImprovedApp() {
         )}
           </div>
 
-          {/* Enhanced Room-Aware Product Sidebar - Only for product_config phase */}
-          {workflow.currentPhase === 'product_config' && (
-            <div className="w-80 bg-white rounded-lg shadow-lg p-6 h-fit sticky top-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <svg className="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 2L3 7v11a1 1 0 001 1h3v-8h6v8h3a1 1 0 001-1V7l-7-5z" clipRule="evenodd" />
-                </svg>
-                Product Management
-              </h3>
-              
-              <div className="space-y-4">
-                {/* Quick Room Switcher */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Quick Room Switch</h4>
-                  <div className="grid grid-cols-1 gap-2">
-                    {workflow.rooms.map((room) => {
-                      const roomProducts = workflow.products.filter(p => p.roomId === room.id);
-                      const isActive = room.id === workflow.currentRoomId;
-                      
-                      return (
-                        <button
-                          key={room.id}
-                          onClick={() => handleRoomSelect(room.id)}
-                          className={`p-2 rounded text-left text-xs transition-colors ${
-                            isActive 
-                              ? 'bg-blue-100 border-blue-300 text-blue-900' 
-                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                          } border`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">{room.name}</span>
-                            <span className="text-green-600">{roomProducts.length}</span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Products by Room */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Products by Room</h4>
-                  {workflow.rooms.map((room) => {
-                    const roomProducts = workflow.products.filter(p => p.roomId === room.id);
-                    const roomTotal = roomProducts.reduce((sum, product) => sum + product.totalPrice, 0);
-                    
-                    return (
-                      <div key={room.id} className="mb-3">
-                        <div 
-                          className={`p-2 rounded cursor-pointer transition-colors ${
-                            room.id === workflow.currentRoomId 
-                              ? 'bg-blue-50 border-blue-200' 
-                              : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                          } border`}
-                          onClick={() => handleRoomSelect(room.id)}
-                        >
-                          <div className="flex justify-between items-center mb-1">
-                            <h5 className="text-sm font-medium text-gray-900">{room.name}</h5>
-                            <span className="text-xs text-green-600 font-medium">
-                              ${roomTotal.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-gray-600">
-                            <span>{roomProducts.length} products</span>
-                            {room.id === workflow.currentRoomId && (
-                              <span className="text-blue-600 font-medium">● Active</span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Show products if this room is active */}
-                        {room.id === workflow.currentRoomId && roomProducts.length > 0 && (
-                          <div className="mt-2 ml-2 space-y-1">
-                            {roomProducts.slice(0, 3).map((product) => {
-                              const productDetails = products.find(p => p.id === product.productId);
-                              return (
-                                <div key={product.id} className="text-xs text-gray-600 flex justify-between">
-                                  <span className="truncate">{productDetails?.name}</span>
-                                  <span>×{product.quantity}</span>
-                                </div>
-                              );
-                            })}
-                            {roomProducts.length > 3 && (
-                              <div className="text-xs text-gray-500">
-                                +{roomProducts.length - 3} more...
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Overall Summary */}
-                <div className="border-t pt-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Total Rooms:</span>
-                      <span className="font-medium">{workflow.rooms.length}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Total Products:</span>
-                      <span className="font-medium">{workflow.products.length}</span>
-                    </div>
-                    <div className="flex justify-between text-sm font-semibold">
-                      <span className="text-gray-900">Grand Total:</span>
-                      <span className="text-green-600">
-                        ${workflow.products.reduce((sum, product) => sum + product.totalPrice, 0).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                {workflow.currentRoomId && (
-                  <div className="border-t pt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Quick Actions</h4>
-                    <div className="space-y-2">
-                      <button
-                        onClick={() => {
-                          const currentRoomProducts = workflow.products.filter(p => p.roomId === workflow.currentRoomId);
-                          if (currentRoomProducts.length === 0) {
-                            alert('No products to clear in this room');
-                            return;
-                          }
-                          if (window.confirm(`Clear all ${currentRoomProducts.length} products from ${getCurrentRoom()?.name}?`)) {
-                            setWorkflow(prev => ({
-                              ...prev,
-                              products: prev.products.filter(p => p.roomId !== workflow.currentRoomId)
-                            }));
-                          }
-                        }}
-                        className="w-full text-xs bg-red-50 text-red-700 border border-red-200 rounded px-2 py-1 hover:bg-red-100"
-                      >
-                        Clear Room Products
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Sticky Navigation Bar */}
