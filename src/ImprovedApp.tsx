@@ -1178,22 +1178,9 @@ function ImprovedApp() {
                   )}
                 </div>
                 
-                {/* Right side - Room count and category filter */}
+                {/* Right side - Room count */}
                 <div className="flex items-center space-x-4">
                   <span className="text-sm text-gray-500">({workflow.rooms.length} rooms)</span>
-                  {workflow.currentRoomId && (
-                    <select
-                      className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                    >
-                      {['all', 'cabinet', 'hardware', 'countertop', 'appliance', 'accessory'].map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat === 'all' ? 'All Products' : cat.charAt(0).toUpperCase() + cat.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-                  )}
                 </div>
               </div>
             </div>
@@ -1230,38 +1217,54 @@ function ImprovedApp() {
                     </div>
 
 
-                    {/* Quote Summary Section */}
+                    {/* Price Breakdown by Room */}
                     <div className="border-t border-gray-200 pt-3">
-                      <h4 className="text-xs font-medium text-gray-700 mb-2">Quote Summary</h4>
-                      {workflow.quote ? (
-                        <div className="space-y-1 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Items:</span>
-                            <span className="font-medium">{workflow.quote.items.length}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Subtotal:</span>
-                            <span className="font-medium">${workflow.quote.subtotal?.toFixed(2) || '0.00'}</span>
-                          </div>
-                          <div className="flex justify-between text-red-600">
-                            <span>Discount:</span>
-                            <span>-${((workflow.quote.subtotal || 0) * (workflow.quote.customerDiscount / 100) + (workflow.quote.orderDiscount || 0)).toFixed(2)}</span>
-                          </div>
-                          <div className="border-t border-gray-200 pt-1">
+                      <h4 className="text-xs font-medium text-gray-700 mb-2">Price by Room</h4>
+                      {workflow.rooms.length > 0 ? (
+                        <div className="space-y-2 text-xs">
+                          {workflow.rooms.map((room) => {
+                            const roomProducts = workflow.products.filter(p => p.roomId === room.id);
+                            const roomTotal = roomProducts.reduce((sum, product) => sum + product.totalPrice, 0);
+                            const isActive = room.id === workflow.currentRoomId;
+                            
+                            return (
+                              <div 
+                                key={room.id} 
+                                className={`p-2 rounded border ${
+                                  isActive 
+                                    ? 'bg-blue-50 border-blue-200' 
+                                    : 'bg-gray-50 border-gray-200'
+                                }`}
+                              >
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className={`font-medium ${isActive ? 'text-blue-900' : 'text-gray-900'}`}>
+                                    {room.name}
+                                    {isActive && <span className="ml-1 text-blue-600">●</span>}
+                                  </span>
+                                  <span className={`font-semibold ${isActive ? 'text-blue-600' : 'text-green-600'}`}>
+                                    ${roomTotal.toFixed(2)}
+                                  </span>
+                                </div>
+                                <div className="text-gray-500">
+                                  {roomProducts.length} product{roomProducts.length !== 1 ? 's' : ''}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          
+                          {/* Grand Total */}
+                          <div className="border-t border-gray-200 pt-2 mt-2">
                             <div className="flex justify-between text-sm font-semibold">
-                              <span>Total:</span>
-                              <span className="text-green-600">${workflow.quote.finalTotal?.toFixed(2) || '0.00'}</span>
+                              <span className="text-gray-900">Total:</span>
+                              <span className="text-green-600">
+                                ${workflow.products.reduce((sum, product) => sum + product.totalPrice, 0).toFixed(2)}
+                              </span>
                             </div>
                           </div>
                         </div>
                       ) : (
-                        <div className="text-center">
-                          <button
-                            onClick={createQuoteFromCurrentState}
-                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs"
-                          >
-                            Create Quote
-                          </button>
+                        <div className="text-center text-gray-500">
+                          <p className="text-xs">No rooms added yet</p>
                         </div>
                       )}
                     </div>

@@ -68,10 +68,23 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
           {/* Clean Product Grid - Scrollable */}
           <div className="bg-white rounded-lg shadow">
             <div className="p-4 border-b border-gray-200">
-              <h3 className="font-medium text-gray-900">
-                Available Products ({filteredProducts.length})
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">Click on products to add them to your quote</p>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-medium text-gray-900">
+                  Available Products ({filteredProducts.length})
+                </h3>
+                <select
+                  className="px-3 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                  value={selectedCategory}
+                  onChange={(e) => onCategoryChange(e.target.value)}
+                >
+                  {['all', 'cabinet', 'hardware', 'countertop', 'appliance', 'accessory'].map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat === 'all' ? 'All Products' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-sm text-gray-600">Click on products to add them to your quote</p>
             </div>
             
             <div className="h-96 overflow-y-auto p-4">
