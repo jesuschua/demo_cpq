@@ -1697,19 +1697,23 @@ function ImprovedApp() {
                     </button>
                     <button
                       onClick={() => {
-                        // Generate HTML content and open in new window
+                        // Generate HTML content and open in new window using blob URL
                         const htmlContent = generateEnhancedPrintHTML();
                         
-                        // Create a new window
-                        const printWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                        // Create a blob with the HTML content
+                        const blob = new Blob([htmlContent], { type: 'text/html' });
+                        const blobUrl = URL.createObjectURL(blob);
+                        
+                        // Open the blob URL in a new window
+                        const printWindow = window.open(blobUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
                         
                         if (printWindow) {
-                          // Write the HTML content directly to the new window
-                          printWindow.document.open();
-                          printWindow.document.write(htmlContent);
-                          printWindow.document.close();
-                          
                           printWindow.focus();
+                          
+                          // Clean up the blob URL after a delay
+                          setTimeout(() => {
+                            URL.revokeObjectURL(blobUrl);
+                          }, 10000);
                         }
                       }}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm"
