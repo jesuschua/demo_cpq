@@ -102,21 +102,19 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
                   </div>
                 </div>
                 
-                {/* Category Filter */}
-                <div className="flex flex-wrap gap-1">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => onCategoryChange(cat)}
-                      className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                        selectedCategory === cat
-                          ? 'bg-blue-100 border-blue-300 text-blue-700 font-medium'
-                          : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                      }`}
-                    >
-                      {cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
-                    </button>
-                  ))}
+                {/* Category Filter Dropdown */}
+                <div>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => onCategoryChange(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat === 'all' ? 'All Categories' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
               

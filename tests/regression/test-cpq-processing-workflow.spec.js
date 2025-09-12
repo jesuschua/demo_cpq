@@ -35,10 +35,21 @@ test.describe('CPQ Processing Workflow', () => {
     const processingContainer = page.locator('div:has-text("Available Processing")').first();
     const allConfigureButtons = processingContainer.locator('button:has-text("Configure")');
     const configureButtonCount = await allConfigureButtons.count();
+    
+    // Look for the Dark Stain Configure button specifically
+    let darkStainButton = null;
+    for (let i = 0; i < configureButtonCount; i++) {
+      const button = allConfigureButtons.nth(i);
+      const parentDiv = button.locator('..');
+      const parentText = await parentDiv.textContent();
+      if (parentText.includes('Dark Stain')) {
+        darkStainButton = button;
+        break;
+      }
+    }
 
-    if (configureButtonCount >= 2) {
-      // Click the Dark Stain Configure button (index 1)
-      await allConfigureButtons.nth(1).click();
+    if (darkStainButton) {
+      await darkStainButton.click();
       await page.waitForTimeout(1000);
 
       // Step 7: Handle the modal
@@ -46,14 +57,13 @@ test.describe('CPQ Processing Workflow', () => {
       const modalHeadings = await page.locator('h3:has-text("Configure")').all();
 
       if (modalHeadings.length > 0) {
-        // Select an option in the modal
-        const selectElements = await page.locator('select').all();
-        if (selectElements.length > 0) {
-          const options = await selectElements[0].locator('option').all();
-          if (options.length > 1) {
-            const firstOptionValue = await options[1].getAttribute('value');
-            await selectElements[0].selectOption(firstOptionValue);
-          }
+        // Find and select the walnut option from the Dark Stain processing modal
+        const selectWithWalnut = page.locator('select option[value="walnut"]').locator('..');
+        const selectCount = await selectWithWalnut.count();
+        
+        if (selectCount > 0) {
+          await selectWithWalnut.first().selectOption('walnut');
+          await page.waitForTimeout(1000);
         }
 
         // Click Apply Processing button
@@ -101,7 +111,17 @@ test.describe('CPQ Processing Workflow', () => {
     // Check if any processing-related terms are found
     const hasProcessingContent = foundTerms.length > 0;
     
+    // More specific verification - check for configured processing
+    const hasDarkStainWithWalnut = printPreviewContent.includes('Dark Stain') && 
+                                  printPreviewContent.includes('Walnut');
+    const hasProcessingPrice = printPreviewContent.includes('$0.15') || 
+                              printPreviewContent.includes('0.15');
+    
     // Verify that processing content appears in the print preview
     expect(hasProcessingContent).toBe(true);
+    
+    // Additional verification that it's actually the configured processing
+    expect(hasDarkStainWithWalnut).toBe(true);
+    expect(hasProcessingPrice).toBe(true);
   });
 });
