@@ -1212,9 +1212,9 @@ function ImprovedApp() {
 
             {/* Product Configuration for Selected Room */}
             {workflow.currentRoomId && (
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-96">
-                {/* Available Products - Left Panel (25%) */}
-                <div className="lg:col-span-1 flex flex-col space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 h-96">
+                {/* Available Products - Left Panel (20%) */}
+                <div className="lg:col-span-1">
                   <CleanProductCatalog
                     models={models}
                     products={products}
@@ -1228,8 +1228,77 @@ function ImprovedApp() {
                     searchTerm={searchTerm}
                     onSearchChange={setSearchTerm}
                   />
-                  
-                  {/* Available Processing - Below Products */}
+                </div>
+                
+                {/* Live Order Grid - Center Panel (40%) */}
+                <div className="lg:col-span-2">
+                  <LiveOrderGrid
+                    products={workflow.products}
+                    rooms={workflow.rooms}
+                    allProducts={products}
+                    allProcessings={processings}
+                    currentRoomId={workflow.currentRoomId}
+                    selectedProductId={selectedProductId}
+                    onProductSelect={(productId) => {
+                      console.log('🔧 setSelectedProductId called with:', productId);
+                      setSelectedProductId(productId);
+                    }}
+                    onProductRemove={(productId) => {
+                      setWorkflow(prev => ({
+                        ...prev,
+                        products: prev.products.filter(p => p.id !== productId)
+                      }));
+                      // Clear selection if removed product was selected
+                      if (selectedProductId === productId) {
+                        setSelectedProductId(null);
+                      }
+                    }}
+                    onQuantityChange={(productId, newQuantity) => {
+                      setWorkflow(prev => ({
+                        ...prev,
+                        products: prev.products.map(p => {
+                          if (p.id === productId) {
+                            const processingCost = p.appliedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
+                            const newTotalPrice = (p.basePrice * newQuantity) + processingCost;
+                            
+                            return { 
+                              ...p, 
+                              quantity: newQuantity, 
+                              totalPrice: newTotalPrice 
+                            };
+                          }
+                          return p;
+                        })
+                      }));
+                    }}
+                    onProcessingRemove={(productId, processingId) => {
+                      // Remove processing from the selected product
+                      setWorkflow(prev => ({
+                        ...prev,
+                        products: prev.products.map(p => {
+                          if (p.id === productId) {
+                            const updatedProcessings = p.appliedProcessings.filter(
+                              ap => ap.processingId !== processingId
+                            );
+                            
+                            const newTotalPrice = p.basePrice * p.quantity + 
+                              updatedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
+                            
+                            return {
+                              ...p,
+                              appliedProcessings: updatedProcessings,
+                              totalPrice: newTotalPrice
+                            };
+                          }
+                          return p;
+                        })
+                      }));
+                    }}
+                  />
+                  </div>
+
+                {/* Available Processing - Center-Right Panel (20%) */}
+                <div className="lg:col-span-1">
                   <AvailableProcessing
                     key={selectedProductId || 'no-selection'}
                     selectedProduct={(() => {
@@ -1333,76 +1402,9 @@ function ImprovedApp() {
                       });
                     }}
                   />
-                            </div>
-                
-                {/* Live Order Grid - Center Panel (50%) */}
-                <div className="lg:col-span-2">
-                  <LiveOrderGrid
-                    products={workflow.products}
-                    rooms={workflow.rooms}
-                    allProducts={products}
-                    allProcessings={processings}
-                    currentRoomId={workflow.currentRoomId}
-                    selectedProductId={selectedProductId}
-                    onProductSelect={(productId) => {
-                      console.log('🔧 setSelectedProductId called with:', productId);
-                      setSelectedProductId(productId);
-                    }}
-                    onProductRemove={(productId) => {
-                      setWorkflow(prev => ({
-                        ...prev,
-                        products: prev.products.filter(p => p.id !== productId)
-                      }));
-                      // Clear selection if removed product was selected
-                      if (selectedProductId === productId) {
-                        setSelectedProductId(null);
-                      }
-                    }}
-                    onQuantityChange={(productId, newQuantity) => {
-                      setWorkflow(prev => ({
-                        ...prev,
-                        products: prev.products.map(p => {
-                          if (p.id === productId) {
-                            const processingCost = p.appliedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
-                            const newTotalPrice = (p.basePrice * newQuantity) + processingCost;
-                            
-                            return { 
-                              ...p, 
-                              quantity: newQuantity, 
-                              totalPrice: newTotalPrice 
-                            };
-                          }
-                          return p;
-                        })
-                      }));
-                    }}
-                    onProcessingRemove={(productId, processingId) => {
-                      // Remove processing from the selected product
-                      setWorkflow(prev => ({
-                        ...prev,
-                        products: prev.products.map(p => {
-                          if (p.id === productId) {
-                            const updatedProcessings = p.appliedProcessings.filter(
-                              ap => ap.processingId !== processingId
-                            );
-                            
-                            const newTotalPrice = p.basePrice * p.quantity + 
-                              updatedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
-                            
-                            return {
-                              ...p,
-                              appliedProcessings: updatedProcessings,
-                              totalPrice: newTotalPrice
-                            };
-                          }
-                          return p;
-                        })
-                      }));
-                    }}
-                  />
-                  </div>
+                </div>
 
-                {/* Price Summary - Right Panel (25%) */}
+                {/* Price Summary - Right Panel (20%) */}
                 <div className="lg:col-span-1">
                   <div className="bg-white rounded-lg shadow p-4 h-full">
                     {/* Header Section */}
