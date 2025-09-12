@@ -42,6 +42,7 @@ function ImprovedApp() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   
+  
 
   // Phase progression with validation
   const canProceedToNextPhase = () => {
@@ -253,7 +254,7 @@ function ImprovedApp() {
     if (workflow.currentPhase === 'product_config' && workflow.rooms.length > 0 && !workflow.currentRoomId) {
       setWorkflow(prev => ({ ...prev, currentRoomId: prev.rooms[0].id }));
     }
-  }, [workflow.customer, workflow.rooms, workflow.currentPhase, workflow.products]);
+  }, [workflow.customer, workflow.rooms, workflow.currentPhase]);
 
   // Phase-specific handlers
   const handleCustomerSelect = (customer: Customer) => {
@@ -1201,7 +1202,16 @@ function ImprovedApp() {
                   
                   {/* Available Processing - Below Products */}
                   <AvailableProcessing
-                    selectedProduct={selectedProductId ? workflow.products.find(p => p.id === selectedProductId) || null : null}
+                    key={selectedProductId || 'no-selection'}
+                    selectedProduct={(() => {
+                      const found = selectedProductId ? workflow.products.find(p => p.productId === selectedProductId) || null : null;
+                      console.log('🔧 AvailableProcessing selectedProduct:', {
+                        selectedProductId,
+                        found,
+                        workflowProducts: workflow.products.map(p => ({ id: p.id, productId: p.productId }))
+                      });
+                      return found;
+                    })()}
                     allProducts={products}
                     processings={processings}
                     onProcessingApply={(productId, processing, selectedOptions = {}) => {
@@ -1226,9 +1236,8 @@ function ImprovedApp() {
                       }
 
                       // Apply processing to the selected product
-                      setWorkflow(prev => ({
-                        ...prev,
-                        products: prev.products.map(p => {
+                      setWorkflow(prev => {
+                        const updatedProducts = prev.products.map(p => {
                           if (p.id === productId) {
                             // Check if processing is already applied
                             const existingProcessing = p.appliedProcessings.find(
@@ -1274,8 +1283,25 @@ function ImprovedApp() {
                             }
                           }
                           return p;
-                        })
-                      }));
+                        });
+
+                        // Update quote if it exists
+                        let updatedQuote = prev.quote;
+                        if (updatedQuote) {
+                          updatedQuote = {
+                            ...updatedQuote,
+                            items: updatedProducts
+                          };
+                          // Recalculate quote totals
+                          updatedQuote = recalculateQuote(updatedQuote);
+                        }
+
+                        return {
+                          ...prev,
+                          products: updatedProducts,
+                          quote: updatedQuote
+                        };
+                      });
                     }}
                   />
                             </div>
@@ -1289,7 +1315,10 @@ function ImprovedApp() {
                     allProcessings={processings}
                     currentRoomId={workflow.currentRoomId}
                     selectedProductId={selectedProductId}
-                    onProductSelect={setSelectedProductId}
+                    onProductSelect={(productId) => {
+                      console.log('🔧 setSelectedProductId called with:', productId);
+                      setSelectedProductId(productId);
+                    }}
                     onProductRemove={(productId) => {
                       setWorkflow(prev => ({
                         ...prev,
@@ -1668,11 +1697,19 @@ function ImprovedApp() {
                     </button>
                     <button
                       onClick={() => {
-                        // Show preview in new window
-                        const previewWindow = window.open('', '_blank');
-                        if (previewWindow) {
-                          previewWindow.document.write(generateEnhancedPrintHTML());
-                          previewWindow.document.close();
+                        // Generate HTML content and open in new window
+                        const htmlContent = generateEnhancedPrintHTML();
+                        
+                        // Create a new window
+                        const printWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                        
+                        if (printWindow) {
+                          // Write the HTML content directly to the new window
+                          printWindow.document.open();
+                          printWindow.document.write(htmlContent);
+                          printWindow.document.close();
+                          
+                          printWindow.focus();
                         }
                       }}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm"

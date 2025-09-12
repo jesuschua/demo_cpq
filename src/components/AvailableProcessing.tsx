@@ -17,17 +17,20 @@ const AvailableProcessing: React.FC<AvailableProcessingProps> = ({
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProcessing, setSelectedProcessing] = useState<Processing | null>(null);
+  
   // Get product details
   const productDetails = selectedProduct 
     ? allProducts.find(p => p.id === selectedProduct.productId)
     : null;
-
+  
   // Filter processings applicable to selected product
   const applicableProcessings = productDetails 
     ? processings.filter(processing => 
         processing.applicableProductCategories.includes(productDetails.category)
       )
     : [];
+  
+  
 
   // Handle processing button click
   const handleProcessingClick = (processing: Processing) => {
@@ -60,13 +63,14 @@ const AvailableProcessing: React.FC<AvailableProcessingProps> = ({
     );
   }
 
+
   return (
     <div className="bg-white rounded-lg shadow h-64 flex flex-col">
       {/* Header */}
       <div className="p-3 border-b border-gray-200">
         <h3 className="text-sm font-semibold text-gray-900">Available Processing</h3>
         <p className="text-xs text-gray-600">
-          For: {productDetails.name}
+          For: {productDetails?.name || 'Unknown Product'}
         </p>
       </div>
 
@@ -119,8 +123,8 @@ const AvailableProcessing: React.FC<AvailableProcessingProps> = ({
         selectedProduct={selectedProduct}
         onApply={handleModalApply}
       />
-    </div>
-  );
+      </div>
+    );
 };
 
 export default AvailableProcessing;

@@ -110,7 +110,7 @@ const LiveOrderGrid: React.FC<LiveOrderGridProps> = ({
                             ? 'bg-blue-50 border-blue-200' 
                             : 'hover:bg-gray-50'
                         }`}
-                        onClick={() => onProductSelect(isSelected ? null : quoteItem.id)}
+                        onClick={() => onProductSelect(isSelected ? null : quoteItem.productId)}
                       >
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
