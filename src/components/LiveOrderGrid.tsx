@@ -1,26 +1,39 @@
 import React from 'react';
-import { QuoteItem, Room, Product } from '../types';
+import { QuoteItem, Room, Product, Processing } from '../types';
 
 interface LiveOrderGridProps {
   products: QuoteItem[];
   rooms: Room[];
   allProducts: Product[];
+  allProcessings: Processing[];
   currentRoomId: string | null;
+  selectedProductId: string | null;
+  onProductSelect: (productId: string | null) => void;
   onProductRemove: (productId: string) => void;
   onQuantityChange: (productId: string, newQuantity: number) => void;
+  onProcessingRemove?: (productId: string, processingId: string) => void;
 }
 
 const LiveOrderGrid: React.FC<LiveOrderGridProps> = ({
   products,
   rooms,
   allProducts,
+  allProcessings,
   currentRoomId,
+  selectedProductId,
+  onProductSelect,
   onProductRemove,
-  onQuantityChange
+  onQuantityChange,
+  onProcessingRemove
 }) => {
   // Helper function to get product details
   const getProductDetails = (productId: string): Product | undefined => {
     return allProducts.find(p => p.id === productId);
+  };
+
+  // Helper function to get processing details
+  const getProcessingDetails = (processingId: string): Processing | undefined => {
+    return allProcessings.find(p => p.id === processingId);
   };
 
   // Group products by room
@@ -88,8 +101,17 @@ const LiveOrderGrid: React.FC<LiveOrderGridProps> = ({
                 <div className="space-y-3">
                   {roomProducts.map((quoteItem) => {
                     const productDetails = getProductDetails(quoteItem.productId);
+                    const isSelected = selectedProductId === quoteItem.id;
                     return (
-                      <div key={quoteItem.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                      <div 
+                        key={quoteItem.id} 
+                        className={`flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors ${
+                          isSelected 
+                            ? 'bg-blue-50 border-blue-200' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                        onClick={() => onProductSelect(isSelected ? null : quoteItem.id)}
+                      >
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <h5 className="text-sm font-medium text-gray-900">
@@ -99,6 +121,42 @@ const LiveOrderGrid: React.FC<LiveOrderGridProps> = ({
                               ${quoteItem.basePrice.toFixed(2)} each
                             </div>
                           </div>
+                          
+                          {/* Processing Information */}
+                          {quoteItem.appliedProcessings.length > 0 && (
+                            <div className="mt-2 ml-4 space-y-1">
+                              {quoteItem.appliedProcessings.map((processing) => {
+                                const processingDetails = getProcessingDetails(processing.processingId);
+                                return (
+                                  <div key={processing.processingId} className="flex items-center justify-between text-xs">
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-gray-500">└─</span>
+                                      <span className="text-gray-600">
+                                        {processingDetails?.name || 'Unknown Processing'}
+                                        {processing.isInherited && (
+                                          <span className="ml-1 text-blue-500">(inherited)</span>
+                                        )}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-green-600 font-medium">
+                                        +${processing.calculatedPrice.toFixed(2)}
+                                      </span>
+                                      {onProcessingRemove && !processing.isInherited && (
+                                        <button
+                                          onClick={() => onProcessingRemove(quoteItem.id, processing.processingId)}
+                                          className="text-red-400 hover:text-red-600"
+                                        >
+                                          ×
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          
                           <div className="flex items-center justify-between mt-1">
                             <div className="flex items-center space-x-2">
                               <button

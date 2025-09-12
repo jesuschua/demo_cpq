@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Quote, Customer, Room, QuoteItem } from './types';
-import { customers, models, products, processings, processingRules, productDependencies } from './data/sampleData';
+import { customers, models, products, processings } from './data/sampleData';
 import MinimalDashboard from './components/MinimalDashboard';
 import CustomerSelector from './components/CustomerSelector';
 import EnhancedRoomManager from './components/EnhancedRoomManager';
 import CleanProductCatalog from './components/CleanProductCatalog';
 import LiveOrderGrid from './components/LiveOrderGrid';
-import LiveProcessingProductManager from './components/LiveProcessingProductManager';
+import AvailableProcessing from './components/AvailableProcessing';
 
-// Define the 5 clear phases
-type WorkflowPhase = 'customer_config' | 'room_config' | 'product_config' | 'processing_config' | 'fees_config';
+// Define the 4 clear phases (processing integrated into product_config)
+type WorkflowPhase = 'customer_config' | 'room_config' | 'product_config' | 'fees_config';
 type AppView = 'dashboard' | 'workflow';
 
 interface WorkflowState {
@@ -40,6 +40,7 @@ function ImprovedApp() {
   
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   
 
   // Phase progression with validation
@@ -48,11 +49,7 @@ function ImprovedApp() {
       case 'customer_config': return workflow.customer !== null;
       case 'room_config': return workflow.rooms.length > 0;
       case 'product_config': {
-        // Ensure there's at least one product total (can be lenient about all rooms having products)
-        return workflow.products.length > 0;
-      }
-      case 'processing_config': {
-        // Can proceed to quote finalize after configuring processings
+        // Ensure there's at least one product total (processing validation will be added later)
         return workflow.products.length > 0;
       }
       case 'fees_config': return workflow.quote !== null;
@@ -61,7 +58,7 @@ function ImprovedApp() {
   };
 
   const proceedToNextPhase = () => {
-    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'];
+    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'fees_config'];
     const currentIndex = phaseOrder.indexOf(workflow.currentPhase);
     
     if (currentIndex < phaseOrder.length - 1 && canProceedToNextPhase()) {
@@ -73,7 +70,7 @@ function ImprovedApp() {
       }
       
       // Auto-create quote when moving to processing config if not already created
-      if (nextPhase === 'processing_config' && !workflow.quote) {
+      if (nextPhase === 'fees_config' && !workflow.quote) {
         createQuoteFromCurrentState();
       }
       
@@ -94,7 +91,7 @@ function ImprovedApp() {
   };
 
   const goToPreviousPhase = () => {
-    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'];
+    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'fees_config'];
     const currentIndex = phaseOrder.indexOf(workflow.currentPhase);
     
     if (currentIndex > 0) {
@@ -108,7 +105,6 @@ function ImprovedApp() {
       case 'customer_config': return workflow.customer;
       case 'room_config': return workflow.rooms;
       case 'product_config': return workflow.products;
-      case 'processing_config': return workflow.products;
       case 'fees_config': return workflow.quote;
       default: return null;
     }
@@ -130,7 +126,6 @@ function ImprovedApp() {
       customer_config: 'Customer Configuration',
       room_config: 'Room Configuration', 
       product_config: 'Product Configuration',
-      processing_config: 'Processing Configuration',
       fees_config: 'Fees & Delivery'
     };
     alert(`${phaseNames[workflow.currentPhase]} saved successfully!`);
@@ -714,6 +709,7 @@ function ImprovedApp() {
                         const inheritedProcessings = item.appliedProcessings.filter((ap: any) => ap.isInherited);
                         const manualProcessings = item.appliedProcessings.filter((ap: any) => !ap.isInherited);
                         
+                        
                         return `
                           <tr class="product-row">
                             <td>
@@ -774,7 +770,7 @@ function ImprovedApp() {
                                     </div>
                                   `;
                                 }).join('')}
-                                ${item.appliedProcessings.length === 0 ? '<em style="color: #9ca3af;">No processings applied</em>' : ''}
+                                ${inheritedProcessings.length === 0 && manualProcessings.length === 0 ? '<em style="color: #9ca3af;">No processings applied</em>' : ''}
                               </div>
                             </td>
                             <td style="text-align: right; font-weight: 600; color: #1f2937;">$${item.totalPrice.toFixed(2)}</td>
@@ -981,14 +977,10 @@ function ImprovedApp() {
     },
     product_config: {
       title: 'Phase 3: Product Configuration',
-      description: 'Select products that inherit room styling'
-    },
-    processing_config: {
-      title: 'Phase 4: Processing Configuration',
-      description: 'Configure processing options and customizations'
+      description: 'Select products and configure processing options'
     },
     fees_config: {
-      title: 'Phase 5: Fees & Delivery Configuration',
+      title: 'Phase 4: Fees & Delivery Configuration',
       description: 'Configure tiered delivery fees and environmental fees'
     }
   };
@@ -1019,10 +1011,10 @@ function ImprovedApp() {
             
             {/* Phase Progress Indicator */}
             <div className="flex items-center space-x-2">
-              {(['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'] as WorkflowPhase[]).map((phase, index) => {
-                const phaseNames = ['Customer', 'Room', 'Products', 'Processing', 'Fees'];
+              {(['customer_config', 'room_config', 'product_config', 'fees_config'] as WorkflowPhase[]).map((phase, index) => {
+                const phaseNames = ['Customer', 'Room', 'Products', 'Fees'];
                 const isActive = workflow.currentPhase === phase;
-                const isCompleted = (['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) > index;
+                const isCompleted = (['customer_config', 'room_config', 'product_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) > index;
                 
                 return (
                   <div key={phase} className="flex items-center">
@@ -1191,7 +1183,7 @@ function ImprovedApp() {
             {workflow.currentRoomId && (
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-96">
                 {/* Available Products - Left Panel (25%) */}
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 flex flex-col space-y-4">
                   <CleanProductCatalog
                     models={models}
                     products={products}
@@ -1205,6 +1197,86 @@ function ImprovedApp() {
                     searchTerm={searchTerm}
                     onSearchChange={setSearchTerm}
                   />
+                  
+                  {/* Available Processing - Below Products */}
+                  <AvailableProcessing
+                    selectedProduct={selectedProductId ? workflow.products.find(p => p.id === selectedProductId) || null : null}
+                    allProducts={products}
+                    processings={processings}
+                    onProcessingApply={(productId, processing, selectedOptions = {}) => {
+                      // Calculate processing price with options
+                      let calculatedPrice = processing.price;
+                      
+                      // Apply price modifiers from selected options
+                      if (processing.options) {
+                        processing.options.forEach(option => {
+                          const selectedValue = selectedOptions[option.id];
+                          if (selectedValue && option.choices) {
+                            const choice = option.choices.find(c => c.value === selectedValue);
+                            if (choice?.priceModifier) {
+                              if (processing.pricingType === 'percentage') {
+                                calculatedPrice += choice.priceModifier;
+                              } else {
+                                calculatedPrice += choice.priceModifier;
+                              }
+                            }
+                          }
+                        });
+                      }
+
+                      // Apply processing to the selected product
+                      setWorkflow(prev => ({
+                        ...prev,
+                        products: prev.products.map(p => {
+                          if (p.id === productId) {
+                            // Check if processing is already applied
+                            const existingProcessing = p.appliedProcessings.find(
+                              ap => ap.processingId === processing.id
+                            );
+                            
+                            if (existingProcessing) {
+                              // Update existing processing
+                              return {
+                                ...p,
+                                appliedProcessings: p.appliedProcessings.map(ap =>
+                                  ap.processingId === processing.id
+                                    ? { 
+                                        ...ap, 
+                                        calculatedPrice: calculatedPrice,
+                                        selectedOptions: selectedOptions
+                                      }
+                                    : ap
+                                ),
+                                totalPrice: p.basePrice * p.quantity + p.appliedProcessings
+                                  .map(ap => ap.processingId === processing.id ? calculatedPrice : ap.calculatedPrice)
+                                  .reduce((sum, price) => sum + price, 0)
+                              };
+                            } else {
+                              // Add new processing
+                              const newProcessing = {
+                                processingId: processing.id,
+                                calculatedPrice: calculatedPrice,
+                                isInherited: false,
+                                appliedDate: new Date().toISOString(),
+                                selectedOptions: selectedOptions
+                              };
+                              
+                              const newTotalPrice = p.basePrice * p.quantity + 
+                                [...p.appliedProcessings, newProcessing]
+                                  .reduce((sum, ap) => sum + ap.calculatedPrice, 0);
+                              
+                              return {
+                                ...p,
+                                appliedProcessings: [...p.appliedProcessings, newProcessing],
+                                totalPrice: newTotalPrice
+                              };
+                            }
+                          }
+                          return p;
+                        })
+                      }));
+                    }}
+                  />
                 </div>
                 
                 {/* Live Order Grid - Center Panel (50%) */}
@@ -1213,19 +1285,59 @@ function ImprovedApp() {
                     products={workflow.products}
                     rooms={workflow.rooms}
                     allProducts={products}
+                    allProcessings={processings}
                     currentRoomId={workflow.currentRoomId}
+                    selectedProductId={selectedProductId}
+                    onProductSelect={setSelectedProductId}
                     onProductRemove={(productId) => {
                       setWorkflow(prev => ({
                         ...prev,
                         products: prev.products.filter(p => p.id !== productId)
                       }));
+                      // Clear selection if removed product was selected
+                      if (selectedProductId === productId) {
+                        setSelectedProductId(null);
+                      }
                     }}
                     onQuantityChange={(productId, newQuantity) => {
                       setWorkflow(prev => ({
                         ...prev,
-                        products: prev.products.map(p => 
-                          p.id === productId ? { ...p, quantity: newQuantity, totalPrice: p.basePrice * newQuantity } : p
-                        )
+                        products: prev.products.map(p => {
+                          if (p.id === productId) {
+                            const processingCost = p.appliedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
+                            const newTotalPrice = (p.basePrice * newQuantity) + processingCost;
+                            
+                            return { 
+                              ...p, 
+                              quantity: newQuantity, 
+                              totalPrice: newTotalPrice 
+                            };
+                          }
+                          return p;
+                        })
+                      }));
+                    }}
+                    onProcessingRemove={(productId, processingId) => {
+                      // Remove processing from the selected product
+                      setWorkflow(prev => ({
+                        ...prev,
+                        products: prev.products.map(p => {
+                          if (p.id === productId) {
+                            const updatedProcessings = p.appliedProcessings.filter(
+                              ap => ap.processingId !== processingId
+                            );
+                            
+                            const newTotalPrice = p.basePrice * p.quantity + 
+                              updatedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
+                            
+                            return {
+                              ...p,
+                              appliedProcessings: updatedProcessings,
+                              totalPrice: newTotalPrice
+                            };
+                          }
+                          return p;
+                        })
                       }));
                     }}
                   />
@@ -1304,55 +1416,6 @@ function ImprovedApp() {
           </div>
         )}
 
-        {/* Phase 4: Processing Configuration */}
-        {workflow.currentPhase === 'processing_config' && workflow.products.length > 0 && (
-          <div>
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Configure Processing Options</h2>
-              <p className="text-gray-600">Add custom processing options to your products</p>
-            </div>
-
-            <LiveProcessingProductManager
-              quote={workflow.quote || { 
-                id: 'temp', 
-                customerId: workflow.customer?.id || '', 
-                items: workflow.products, 
-                rooms: workflow.rooms, 
-                contractDiscount: 0,
-                customerDiscount: 0, 
-                orderDiscount: 0,
-                subtotal: 0, 
-                totalDiscount: 0,
-                deliveryFees: {
-                  tier1: 0,
-                  tier2: 0,
-                  tier3: 0,
-                  calculated: 0
-                },
-                environmentalFees: {
-                  carbonOffsetPercentage: 0,
-                  sustainabilityFee: 0,
-                  ecoFriendlyPackaging: false,
-                  calculated: 0
-                },
-                finalTotal: 0,
-                status: 'draft' as const,
-                createdAt: new Date(),
-                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-                requiresApproval: false,
-                approvalThreshold: 0
-              }}
-              rooms={workflow.rooms}
-              products={products}
-              processings={processings}
-              processingRules={processingRules}
-              productDependencies={productDependencies}
-              onQuoteUpdate={(updatedQuote) => {
-                setWorkflow(prev => ({ ...prev, quote: updatedQuote }));
-              }}
-            />
-          </div>
-        )}
 
         {/* Phase 5: Fees & Delivery Configuration */}
         {workflow.currentPhase === 'fees_config' && workflow.quote && (
@@ -1548,12 +1611,12 @@ function ImprovedApp() {
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
-                  Phase {(['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1} of 5
+                  Phase {(['customer_config', 'room_config', 'product_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1} of 4
                 </span>
                 <div className="w-32 bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(((['customer_config', 'room_config', 'product_config', 'processing_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1) / 5) * 100}%` }}
+                    style={{ width: `${(((['customer_config', 'room_config', 'product_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1) / 4) * 100}%` }}
                   ></div>
                 </div>
               </div>
