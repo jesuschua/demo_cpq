@@ -5,6 +5,7 @@ import MinimalDashboard from './components/MinimalDashboard';
 import CustomerSelector from './components/CustomerSelector';
 import EnhancedRoomManager from './components/EnhancedRoomManager';
 import CleanProductCatalog from './components/CleanProductCatalog';
+import LiveOrderGrid from './components/LiveOrderGrid';
 import LiveProcessingProductManager from './components/LiveProcessingProductManager';
 
 // Define the 5 clear phases
@@ -38,6 +39,7 @@ function ImprovedApp() {
   });
   
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
   
 
   // Phase progression with validation
@@ -1187,9 +1189,9 @@ function ImprovedApp() {
 
             {/* Product Configuration for Selected Room */}
             {workflow.currentRoomId && (
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* Main Product Area - Takes up most space */}
-                <div className="lg:col-span-3">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-96">
+                {/* Available Products - Left Panel (25%) */}
+                <div className="lg:col-span-1">
                   <CleanProductCatalog
                     models={models}
                     products={products}
@@ -1200,12 +1202,38 @@ function ImprovedApp() {
                     onCreateQuote={() => {}}
                     selectedCategory={selectedCategory}
                     onCategoryChange={setSelectedCategory}
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
                   />
                 </div>
                 
-                {/* Single Efficient Sidebar */}
+                {/* Live Order Grid - Center Panel (50%) */}
+                <div className="lg:col-span-2">
+                  <LiveOrderGrid
+                    products={workflow.products}
+                    rooms={workflow.rooms}
+                    allProducts={products}
+                    currentRoomId={workflow.currentRoomId}
+                    onProductRemove={(productId) => {
+                      setWorkflow(prev => ({
+                        ...prev,
+                        products: prev.products.filter(p => p.id !== productId)
+                      }));
+                    }}
+                    onQuantityChange={(productId, newQuantity) => {
+                      setWorkflow(prev => ({
+                        ...prev,
+                        products: prev.products.map(p => 
+                          p.id === productId ? { ...p, quantity: newQuantity, totalPrice: p.basePrice * newQuantity } : p
+                        )
+                      }));
+                    }}
+                  />
+                </div>
+                
+                {/* Price Summary - Right Panel (25%) */}
                 <div className="lg:col-span-1">
-                  <div className="bg-white rounded-lg shadow p-4">
+                  <div className="bg-white rounded-lg shadow p-4 h-full">
                     {/* Header Section */}
                     <div className="border-b border-gray-200 pb-3 mb-4">
                       <h3 className="text-sm font-semibold text-gray-900 mb-1">

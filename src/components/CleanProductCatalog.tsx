@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Model, Product } from '../types';
 
 interface CleanProductCatalogProps {
@@ -11,6 +11,8 @@ interface CleanProductCatalogProps {
   onCreateQuote: () => void;
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
 }
 
 const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
@@ -22,7 +24,9 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
   hasQuote,
   onCreateQuote,
   selectedCategory,
-  onCategoryChange
+  onCategoryChange,
+  searchTerm,
+  onSearchChange
 }) => {
   const filteredProducts = useMemo(() => {
     let filtered = products.filter(p => 
@@ -33,8 +37,14 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
       filtered = filtered.filter(p => p.category === selectedCategory);
     }
 
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
     return filtered;
-  }, [products, selectedModel, selectedCategory]);
+  }, [products, selectedModel, selectedCategory, searchTerm]);
 
   const categories = ['all', 'cabinet', 'hardware', 'countertop', 'appliance', 'accessory'];
 
@@ -68,57 +78,79 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
           {/* Clean Product Grid - Scrollable */}
           <div className="bg-white rounded-lg shadow">
             <div className="p-4 border-b border-gray-200">
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium text-gray-900">
                   Available Products ({filteredProducts.length})
                 </h3>
-                <select
-                  className="px-3 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                  value={selectedCategory}
-                  onChange={(e) => onCategoryChange(e.target.value)}
-                >
-                  {['all', 'cabinet', 'hardware', 'countertop', 'appliance', 'accessory'].map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat === 'all' ? 'All Products' : cat.charAt(0).toUpperCase() + cat.slice(1)}
-                    </option>
-                  ))}
-                </select>
               </div>
-              <p className="text-sm text-gray-600">Click on products to add them to your quote</p>
+              
+              {/* Search and Filter Controls */}
+              <div className="space-y-3">
+                {/* Search Input */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search products (e.g., 'Base', 'Cabinet')..."
+                    value={searchTerm}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                    className="w-full px-3 py-2 pl-8 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+                
+                {/* Category Filter */}
+                <div className="flex flex-wrap gap-1">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => onCategoryChange(cat)}
+                      className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                        selectedCategory === cat
+                          ? 'bg-blue-100 border-blue-300 text-blue-700 font-medium'
+                          : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <p className="text-xs text-gray-500 mt-2">Click on products to add them to your quote</p>
             </div>
             
-            <div className="h-96 overflow-y-auto p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="h-64 overflow-y-auto p-3">
+              <div className="grid grid-cols-1 gap-2">
                 {filteredProducts.map((product) => {
                   return (
                     <div 
                       key={product.id} 
-                      className="border border-gray-200 rounded-lg p-3 cursor-pointer transition-all hover:shadow-md hover:border-gray-300"
+                      className="border border-gray-200 rounded p-2 cursor-pointer transition-all hover:shadow-md hover:border-gray-300"
                       onClick={() => handleProductClick(product)}
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 text-sm leading-tight">
+                      <div className="flex justify-between items-center">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 text-xs leading-tight truncate">
                             {product.name}
                           </h4>
                           <p className="text-xs text-gray-500 capitalize">{product.category}</p>
                         </div>
-                        <div className="text-right ml-2">
-                          <p className="font-semibold text-green-600 text-sm">
+                        <div className="text-right ml-2 flex-shrink-0">
+                          <p className="font-semibold text-green-600 text-xs">
                             ${product.basePrice.toFixed(2)}
                           </p>
-                        </div>
-                      </div>
-
-                      {/* Minimal status indicator */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                            product.inStock ? 'bg-green-500' : 'bg-yellow-500'
-                          }`}></span>
-                          <span className="text-xs text-gray-600">
-                            {product.inStock ? 'Available' : `${product.leadTimeDays}d`}
-                          </span>
+                          <div className="flex items-center mt-1">
+                            <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 ${
+                              product.inStock ? 'bg-green-500' : 'bg-yellow-500'
+                            }`}></span>
+                            <span className="text-xs text-gray-500">
+                              {product.inStock ? 'In stock' : `${product.leadTimeDays}d`}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
