@@ -17,7 +17,6 @@ interface WorkflowState {
   customer: Customer | null;
   rooms: Room[];
   currentRoomId: string | null; // Track which room is currently being configured
-  products: Quote['items'];
   quote: Quote | null;
   savedStates: {
     customer?: Customer;
@@ -33,7 +32,6 @@ function ImprovedApp() {
     customer: null,
     rooms: [],
     currentRoomId: null,
-    products: [],
     quote: null,
     savedStates: {}
   });
@@ -51,7 +49,7 @@ function ImprovedApp() {
       case 'room_config': return workflow.rooms.length > 0;
       case 'product_config': {
         // Ensure there's at least one product total (processing validation will be added later)
-        return workflow.products.length > 0;
+        return (workflow.quote?.items?.length || 0) > 0;
       }
       case 'fees_config': return workflow.quote !== null;
       default: return false;
@@ -105,7 +103,7 @@ function ImprovedApp() {
     switch (workflow.currentPhase) {
       case 'customer_config': return workflow.customer;
       case 'room_config': return workflow.rooms;
-      case 'product_config': return workflow.products;
+      case 'product_config': return workflow.quote?.items || [];
       case 'fees_config': return workflow.quote;
       default: return null;
     }
@@ -140,7 +138,7 @@ function ImprovedApp() {
       id: `quote_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       customerId: workflow.customer.id,
       rooms: workflow.rooms,
-      items: workflow.products,
+      items: workflow.quote?.items || [],
       contractDiscount: 0,
       customerDiscount: workflow.customer.discountPercentage || 0,
       orderDiscount: 0,
@@ -224,27 +222,29 @@ function ImprovedApp() {
   useEffect(() => {
     // If customer changes, clear rooms and products
     if (workflow.currentPhase === 'customer_config' && workflow.rooms.length > 0) {
-      setWorkflow(prev => ({ ...prev, rooms: [], currentRoomId: null, products: [], quote: null }));
+      setWorkflow(prev => ({ ...prev, rooms: [], currentRoomId: null, quote: null }));
     }
     
     // If rooms change, clear products that don't match any room's model
-    if (workflow.currentPhase === 'room_config' && workflow.rooms.length > 0 && workflow.products.length > 0) {
+    if (workflow.currentPhase === 'room_config' && workflow.rooms.length > 0 && (workflow.quote?.items?.length || 0) > 0) {
       const roomModelIds = workflow.rooms.map(room => {
         const roomModel = models.find(m => m.id === room.frontModelId);
         return roomModel?.id;
       }).filter(Boolean);
       
       if (roomModelIds.length > 0) {
-        const compatibleProducts = workflow.products.filter(item => {
+        const compatibleProducts = (workflow.quote?.items || []).filter(item => {
           const product = products.find(p => p.id === item.productId);
           return product && roomModelIds.includes(product.modelId);
         });
         
-        if (compatibleProducts.length !== workflow.products.length) {
+        if (compatibleProducts.length !== (workflow.quote?.items?.length || 0)) {
           setWorkflow(prev => ({ 
             ...prev, 
-            products: compatibleProducts,
-            quote: null // Clear quote to force recalculation
+            quote: prev.quote ? {
+              ...prev.quote,
+              items: compatibleProducts
+            } : null
           }));
         }
       }
@@ -345,11 +345,12 @@ function ImprovedApp() {
     };
 
     setWorkflow(prev => {
-      const updatedProducts = [...prev.products, newItem];
+      const currentItems = prev.quote?.items || [];
+      const updatedItems = [...currentItems, newItem];
       const updatedQuote = prev.quote ? {
         ...prev.quote,
-        items: updatedProducts,
-        subtotal: updatedProducts.reduce((sum, item) => sum + item.totalPrice, 0)
+        items: updatedItems,
+        subtotal: updatedItems.reduce((sum, item) => sum + item.totalPrice, 0)
       } : null;
       
       // Use recalculateQuote to properly calculate final total with fees
@@ -357,7 +358,6 @@ function ImprovedApp() {
       
       return {
         ...prev,
-        products: updatedProducts,
         quote: finalQuote
       };
     });
@@ -366,19 +366,19 @@ function ImprovedApp() {
   const handleQuoteUpdate = (updatedQuote: Quote) => {
     setWorkflow(prev => ({ 
       ...prev, 
-      quote: updatedQuote,
-      products: updatedQuote.items // Keep products array in sync with quote items
+      quote: updatedQuote
     }));
   };
 
   // Remove product from workflow
   const removeProduct = (productId: string) => {
     setWorkflow(prev => {
-      const updatedProducts = prev.products.filter(item => item.productId !== productId);
+      const currentItems = prev.quote?.items || [];
+      const updatedItems = currentItems.filter(item => item.productId !== productId);
       const updatedQuote = prev.quote ? {
         ...prev.quote,
-        items: updatedProducts,
-        subtotal: updatedProducts.reduce((sum, item) => sum + item.totalPrice, 0)
+        items: updatedItems,
+        subtotal: updatedItems.reduce((sum, item) => sum + item.totalPrice, 0)
       } : null;
       
       // Use recalculateQuote to properly calculate final total with fees
@@ -386,7 +386,6 @@ function ImprovedApp() {
       
       return {
         ...prev,
-        products: updatedProducts,
         quote: finalQuote
       };
     });
@@ -394,7 +393,8 @@ function ImprovedApp() {
 
   const adjustProductQuantity = (productId: string, change: number) => {
     setWorkflow(prev => {
-      const updatedProducts = prev.products.map(item => {
+      const currentItems = prev.quote?.items || [];
+      const updatedItems = currentItems.map(item => {
         if (item.productId === productId) {
           const newQuantity = item.quantity + change;
           return { ...item, quantity: newQuantity };
@@ -404,8 +404,8 @@ function ImprovedApp() {
       
       const updatedQuote = prev.quote ? {
         ...prev.quote,
-        items: updatedProducts,
-        subtotal: updatedProducts.reduce((sum, item) => sum + item.totalPrice, 0)
+        items: updatedItems,
+        subtotal: updatedItems.reduce((sum, item) => sum + item.totalPrice, 0)
       } : null;
       
       // Use recalculateQuote to properly calculate final total with fees
@@ -413,7 +413,6 @@ function ImprovedApp() {
       
       return {
         ...prev,
-        products: updatedProducts,
         quote: finalQuote
       };
     });
@@ -898,7 +897,6 @@ function ImprovedApp() {
       customer,
       rooms: [],
       currentRoomId: null,
-      products: [],
       quote: null,
       savedStates: {}
     });
@@ -913,7 +911,6 @@ function ImprovedApp() {
         customer,
         rooms: quote.rooms,
         currentRoomId: quote.rooms[0].id,
-        products: quote.items,
         quote,
         savedStates: {}
       });
@@ -929,7 +926,6 @@ function ImprovedApp() {
       customer: null,
       rooms: [],
       currentRoomId: null,
-      products: [],
       quote: null,
       savedStates: {}
     });
@@ -963,7 +959,9 @@ function ImprovedApp() {
     } else {
       console.log('No quote to save - workflow.quote is null');
       // Try to create quote if it doesn't exist
-      if (workflow.customer && workflow.rooms.length > 0 && workflow.products.length > 0) {
+      if (workflow.customer && workflow.rooms.length > 0 && workflow.quote) {
+        const hasItems = (workflow.quote as Quote)?.items?.length && (workflow.quote as Quote).items.length > 0;
+        if (hasItems) {
         console.log('Creating quote before saving...');
         createQuoteFromCurrentState();
         
@@ -975,6 +973,7 @@ function ImprovedApp() {
             alert('Error: Unable to create quote for saving');
           }
         }, 100);
+        }
       } else {
         alert('Error: Quote cannot be saved - missing required data');
       }
@@ -987,7 +986,6 @@ function ImprovedApp() {
       customer: null,
       rooms: [],
       currentRoomId: null,
-      products: [],
       quote: null,
       savedStates: {}
     });
@@ -1171,7 +1169,7 @@ function ImprovedApp() {
                     <span className="text-sm text-gray-600">Room:</span>
                     <div className="flex space-x-1">
                       {workflow.rooms.map((room) => {
-                  const roomProductCount = workflow.products.filter(p => p.roomId === room.id).length;
+                  const roomProductCount = (workflow.quote?.items || []).filter(p => p.roomId === room.id).length;
                   const isActive = workflow.currentRoomId === room.id;
                   
                   return (
@@ -1237,7 +1235,7 @@ function ImprovedApp() {
                 {/* Live Order Grid - Center Panel (40%) */}
                 <div className="lg:col-span-2">
                   <LiveOrderGrid
-                    products={workflow.products}
+                    products={workflow.quote?.items || []}
                     rooms={workflow.rooms}
                     allProducts={products}
                     allProcessings={processings}
@@ -1248,55 +1246,49 @@ function ImprovedApp() {
                       setSelectedProductId(productId);
                     }}
                     onProductRemove={(productId) => {
-                      setWorkflow(prev => ({
-                        ...prev,
-                        products: prev.products.filter(p => p.id !== productId)
-                      }));
+                      removeProduct(productId);
                       // Clear selection if removed product was selected
                       if (selectedProductId === productId) {
                         setSelectedProductId(null);
                       }
                     }}
                     onQuantityChange={(productId, newQuantity) => {
-                      setWorkflow(prev => ({
-                        ...prev,
-                        products: prev.products.map(p => {
-                          if (p.id === productId) {
-                            const processingCost = p.appliedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
-                            const newTotalPrice = (p.basePrice * newQuantity) + processingCost;
-                            
-                            return { 
-                              ...p, 
-                              quantity: newQuantity, 
-                              totalPrice: newTotalPrice 
-                            };
-                          }
-                          return p;
-                        })
-                      }));
+                      const currentItems = workflow.quote?.items || [];
+                      const currentItem = currentItems.find(p => p.id === productId);
+                      if (currentItem) {
+                        const change = newQuantity - currentItem.quantity;
+                        adjustProductQuantity(productId, change);
+                      }
                     }}
                     onProcessingRemove={(productId, processingId) => {
                       // Remove processing from the selected product
-                      setWorkflow(prev => ({
-                        ...prev,
-                        products: prev.products.map(p => {
-                          if (p.id === productId) {
-                            const updatedProcessings = p.appliedProcessings.filter(
-                              ap => ap.processingId !== processingId
-                            );
-                            
-                            const newTotalPrice = p.basePrice * p.quantity + 
-                              updatedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
-                            
-                            return {
-                              ...p,
-                              appliedProcessings: updatedProcessings,
-                              totalPrice: newTotalPrice
-                            };
-                          }
-                          return p;
-                        })
-                      }));
+                      const currentItems = workflow.quote?.items || [];
+                      const updatedItems = currentItems.map(p => {
+                        if (p.id === productId) {
+                          const updatedProcessings = p.appliedProcessings.filter(
+                            ap => ap.processingId !== processingId
+                          );
+                          
+                          const newTotalPrice = p.basePrice * p.quantity + 
+                            updatedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
+                          
+                          return {
+                            ...p,
+                            appliedProcessings: updatedProcessings,
+                            totalPrice: newTotalPrice
+                          };
+                        }
+                        return p;
+                      });
+                      
+                      const updatedQuote = workflow.quote ? {
+                        ...workflow.quote,
+                        items: updatedItems,
+                        subtotal: updatedItems.reduce((sum, item) => sum + item.totalPrice, 0)
+                      } : null;
+                      
+                      const finalQuote = updatedQuote ? recalculateQuote(updatedQuote) : null;
+                      setWorkflow(prev => ({ ...prev, quote: finalQuote }));
                     }}
                   />
                   </div>
@@ -1306,11 +1298,11 @@ function ImprovedApp() {
                   <AvailableProcessing
                     key={selectedProductId || 'no-selection'}
                     selectedProduct={(() => {
-                      const found = selectedProductId ? workflow.products.find(p => p.productId === selectedProductId) || null : null;
+                      const found = selectedProductId ? (workflow.quote?.items || []).find(p => p.productId === selectedProductId) || null : null;
                       console.log('🔧 AvailableProcessing selectedProduct:', {
                         selectedProductId,
                         found,
-                        workflowProducts: workflow.products.map(p => ({ id: p.id, productId: p.productId }))
+                        workflowProducts: (workflow.quote?.items || []).map(p => ({ id: p.id, productId: p.productId }))
                       });
                       return found;
                     })()}
@@ -1339,7 +1331,8 @@ function ImprovedApp() {
 
                       // Apply processing to the selected product
                       setWorkflow(prev => {
-                        const updatedProducts = prev.products.map(p => {
+                        const currentItems = prev.quote?.items || [];
+                        const updatedProducts = currentItems.map(p => {
                           if (p.id === productId) {
                             // Check if processing is already applied
                             const existingProcessing = p.appliedProcessings.find(
@@ -1400,7 +1393,6 @@ function ImprovedApp() {
 
                         return {
                           ...prev,
-                          products: updatedProducts,
                           quote: updatedQuote
                         };
                       });
@@ -1417,7 +1409,7 @@ function ImprovedApp() {
                         {getCurrentRoom()?.name}
                       </h3>
                       <p className="text-xs text-gray-500">
-                        {getCurrentRoomModel()?.name} • {workflow.products.filter(p => p.roomId === workflow.currentRoomId).length} products
+                        {getCurrentRoomModel()?.name} • {(workflow.quote?.items || []).filter(p => p.roomId === workflow.currentRoomId).length} products
                       </p>
                     </div>
 
@@ -1429,7 +1421,7 @@ function ImprovedApp() {
                       {workflow.rooms.length > 0 ? (
                         <div className="space-y-2 text-xs">
                       {workflow.rooms.map((room) => {
-                        const roomProducts = workflow.products.filter(p => p.roomId === room.id);
+                        const roomProducts = (workflow.quote?.items || []).filter(p => p.roomId === room.id);
                         const roomTotal = roomProducts.reduce((sum, product) => sum + product.totalPrice, 0);
                             const isActive = room.id === workflow.currentRoomId;
                         
@@ -1463,7 +1455,7 @@ function ImprovedApp() {
                             <div className="flex justify-between text-sm font-semibold">
                               <span className="text-gray-900">Total:</span>
                           <span className="text-green-600">
-                            ${workflow.products.reduce((sum, product) => sum + product.totalPrice, 0).toFixed(2)}
+                            ${(workflow.quote?.items || []).reduce((sum, product) => sum + product.totalPrice, 0).toFixed(2)}
                           </span>
                         </div>
                       </div>
