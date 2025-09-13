@@ -51,12 +51,47 @@ const MinimalDashboard: React.FC<MinimalDashboardProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Minimal Header */}
+      {/* Header with Phase Progression */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">Kitchen CPQ</h1>
+            </div>
+            
+            {/* Phase Progress Indicator */}
+            <div className="flex items-center space-x-2">
+              {(['customer_config', 'room_config', 'product_config', 'fees_config', 'finalize']).map((phase, index) => {
+                const phaseNames = ['Customer', 'Room', 'Products', 'Fees', 'Finalize'];
+                const isActive = phase === 'customer_config'; // Dashboard is always in customer phase
+                const isCompleted = false; // No phases completed on dashboard
+                
+                return (
+                  <div key={phase} className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                      isActive ? 'bg-blue-600 text-white' :
+                      isCompleted ? 'bg-green-600 text-white' :
+                      'bg-gray-300 text-gray-600'
+                    }`}>
+                      {index + 1}
+                    </div>
+                    <span className={`ml-2 text-sm ${isActive ? 'text-blue-600 font-medium' : 'text-gray-500'}`}>
+                      {phaseNames[index]}
+                    </span>
+                    {index < 4 && <div className="w-8 h-0.5 bg-gray-300 mx-3" />}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Current Phase Info */}
+            <div className="text-right">
+              <div className="text-sm font-medium text-gray-900">
+                Phase 1: Customer Configuration
+              </div>
+              <div className="text-xs text-gray-500">
+                Select customer to start quote process
+              </div>
             </div>
           </div>
         </div>
@@ -198,12 +233,18 @@ const MinimalDashboard: React.FC<MinimalDashboardProps> = ({
 
         {/* Quick Action */}
         <div className="mt-8 text-center">
-          <button
-            onClick={() => setShowCustomers(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium"
-          >
-            Start New Quote
-          </button>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-4">
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">Ready to Create a Quote?</h3>
+            <p className="text-blue-700 text-sm mb-4">
+              Select a customer below to begin the quote process. You'll configure rooms, select products, and finalize your quote.
+            </p>
+            <button
+              onClick={() => setShowCustomers(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium"
+            >
+              Select Customer to Start New Quote
+            </button>
+          </div>
         </div>
 
         {/* Minimal Statistics */}
