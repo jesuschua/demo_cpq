@@ -15,13 +15,27 @@ test.describe('CPQ Processing Workflow', () => {
     // Click "Create Order" button for the selected customer
     await page.click('button:has-text("Create Order")');
 
-    // Step 3: Create a room
+    // Step 3: Create a room using the new three-pane layout
     await page.waitForTimeout(2000);
+    
+    // Fill room details in the left pane
     const roomTypeSelect = page.locator('select').first();
     await roomTypeSelect.selectOption('Kitchen');
+    
+    // Fill description
+    const descriptionInput = page.locator('input[placeholder="Special notes..."]');
+    await descriptionInput.fill('Main Kitchen');
+    
+    // Select front model/style
     const styleSelect = page.locator('select').nth(1);
-    await styleSelect.selectOption('mod_traditional_oak');
-    await page.click('button:has-text("Create Room & Start Quote")');
+    await styleSelect.selectOption('Traditional Oak');
+    
+    // Click Add Room button
+    await page.click('button:has-text("Add Room")');
+    await page.waitForTimeout(2000);
+    
+    // Wait for room to appear in the middle pane
+    await page.waitForSelector('text=Main Kitchen', { timeout: 10000 });
 
     // Step 4: Move to product configuration
     await page.click('button:has-text("Continue →")');
@@ -202,13 +216,27 @@ test.describe('CPQ Processing Workflow', () => {
     // Click "Create Order" button for the selected customer
     await page.click('button:has-text("Create Order")');
 
-    // Create a room
+    // Create a room using the new three-pane layout
     await page.waitForTimeout(2000);
+    
+    // Fill room details in the left pane
     const roomTypeSelect = page.locator('select').first();
     await roomTypeSelect.selectOption('Kitchen');
+    
+    // Fill description
+    const descriptionInput = page.locator('input[placeholder="Special notes..."]');
+    await descriptionInput.fill('Test Kitchen');
+    
+    // Select front model/style
     const styleSelect = page.locator('select').nth(1);
-    await styleSelect.selectOption('mod_traditional_oak');
-    await page.click('button:has-text("Create Room & Start Quote")');
+    await styleSelect.selectOption('Traditional Oak');
+    
+    // Click Add Room button
+    await page.click('button:has-text("Add Room")');
+    await page.waitForTimeout(2000);
+    
+    // Wait for room to appear in the middle pane
+    await page.waitForSelector('text=Test Kitchen', { timeout: 10000 });
 
     // Move to product configuration
     await page.click('button:has-text("Continue →")');
