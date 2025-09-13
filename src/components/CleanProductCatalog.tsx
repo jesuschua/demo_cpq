@@ -53,7 +53,7 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-96 flex flex-col">
       {/* Model Selection */}
       {!selectedModel && (
         <div className="bg-white rounded-lg shadow p-6">
@@ -76,7 +76,7 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
       {selectedModel && (
         <>
           {/* Clean Product Grid - Scrollable */}
-          <div className="bg-white rounded-lg shadow">
+          <div className="bg-white rounded-lg shadow flex-1 flex flex-col min-h-0">
             <div className="p-4 border-b border-gray-200">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium text-gray-900">
@@ -121,7 +121,7 @@ const CleanProductCatalog: React.FC<CleanProductCatalogProps> = ({
               <p className="text-xs text-gray-500 mt-2">Click on products to add them to your quote</p>
             </div>
             
-            <div className="h-64 overflow-y-auto p-3">
+            <div className="flex-1 overflow-y-auto p-3 min-h-0">
               <div className="grid grid-cols-1 gap-2">
                 {filteredProducts.map((product) => {
                   return (
