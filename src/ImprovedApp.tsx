@@ -3,7 +3,7 @@ import { Quote, Customer, Room, QuoteItem } from './types';
 import { customers, models, products, processings } from './data/sampleData';
 import MinimalDashboard from './components/MinimalDashboard';
 import CustomerSelector from './components/CustomerSelector';
-import EnhancedRoomManager from './components/EnhancedRoomManager';
+import HorizontalRoomManager from './components/HorizontalRoomManager';
 import CleanProductCatalog from './components/CleanProductCatalog';
 import LiveOrderGrid from './components/LiveOrderGrid';
 import OptimizedRoomSelector from './components/OptimizedRoomSelector';
@@ -1162,7 +1162,7 @@ function ImprovedApp() {
 
         {/* Phase 2: Room Configuration */}
         {workflow.currentPhase === 'room_config' && (
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Configure Room</h2>
               <p className="text-gray-600">
@@ -1170,7 +1170,7 @@ function ImprovedApp() {
               </p>
             </div>
 
-            <EnhancedRoomManager
+            <HorizontalRoomManager
               models={models}
               processings={processings}
               onCreateQuote={handleRoomCreate}
