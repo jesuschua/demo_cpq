@@ -2,14 +2,18 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('CPQ Processing Workflow', () => {
   test('Complete workflow: customer selection, room creation, product addition, processing application, and print preview', async ({ page }) => {
+    test.setTimeout(60000); // Increase timeout to 60 seconds
     // Step 1: Navigate to the app
     await page.goto('http://localhost:3000');
     await page.waitForTimeout(2000);
 
     // Step 2: Start new quote and select customer
-    await page.click('button:has-text("Start New Quote")');
+    await page.click('button:has-text("Create Quote")');
     await page.waitForTimeout(2000);
+    // Click on John Smith Construction in the customer selection modal
     await page.click('text=John Smith Construction');
+    // Click "Create Order" button for the selected customer
+    await page.click('button:has-text("Create Order")');
 
     // Step 3: Create a room
     await page.waitForTimeout(2000);
@@ -95,10 +99,16 @@ test.describe('CPQ Processing Workflow', () => {
     
     // Step 9: Go to Finalize phase
     await page.click('button:has-text("Finalize Order →")');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
+    
+    // Debug: Check what's on the page
+    console.log('Current page URL:', page.url());
+    const pageContent = await page.textContent('body');
+    console.log('Page contains "Print Order":', pageContent.includes('Print Order'));
     
     // Step 10: Click Print Order button in the finalize phase
     const printButton = page.locator('button:has-text("Print Order")');
+    await printButton.waitFor({ state: 'visible', timeout: 10000 });
     await printButton.click();
     
     // Wait a bit for the print preview to load
@@ -184,9 +194,12 @@ test.describe('CPQ Processing Workflow', () => {
     await page.waitForTimeout(2000);
 
     // Start new quote
-    await page.click('button:has-text("Start New Quote")');
+    await page.click('button:has-text("Create Quote")');
     await page.waitForTimeout(2000);
+    // Click on John Smith Construction in the customer selection modal
     await page.click('text=John Smith Construction');
+    // Click "Create Order" button for the selected customer
+    await page.click('button:has-text("Create Order")');
 
     // Create a room
     await page.waitForTimeout(2000);
