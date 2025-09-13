@@ -213,215 +213,226 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
       {/* Room Creation Form */}
       {showCreateForm && (
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {editingRoomId 
-              ? 'Edit Room' 
-              : existingRooms.length === 0 
-                ? 'Create Room & Configure Auto-Processing' 
-                : 'Add New Room'
-            }
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Room Type */}
+          {/* Form Header with Action Button */}
+          <div className="flex justify-between items-start mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Room Type *
-              </label>
-              <select
-                value={newRoom.type}
-                onChange={(e) => setNewRoom(prev => ({ ...prev, type: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              >
-                {ROOM_TYPES.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {editingRoomId 
+                  ? 'Edit Room' 
+                  : existingRooms.length === 0 
+                    ? 'Create Room & Configure Auto-Processing' 
+                    : 'Add New Room'
+                }
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                {existingRooms.length === 0 
+                  ? 'Configure your first room and set up automatic processings'
+                  : 'Add another room to your configuration'
+                }
+              </p>
             </div>
-
-            {/* Model Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Style *
-              </label>
-              <select
-                value={newRoom.frontModelId}
-                onChange={(e) => setNewRoom(prev => ({ ...prev, frontModelId: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select a style...</option>
-                {models.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name} ({model.category})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description (Optional)
-            </label>
-            <textarea
-              value={newRoom.description}
-              onChange={(e) => setNewRoom(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Add any special notes or requirements for this room..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              rows={3}
-            />
-          </div>
-
-          {/* Dimensions */}
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Dimensions (Optional)
-            </label>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <input
-                  type="number"
-                  placeholder="Width (ft)"
-                  value={newRoom.dimensions.width || ''}
-                  onChange={(e) => setNewRoom(prev => ({
-                    ...prev,
-                    dimensions: { ...prev.dimensions, width: parseFloat(e.target.value) || 0 }
-                  }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <input
-                  type="number"
-                  placeholder="Height (ft)"
-                  value={newRoom.dimensions.height || ''}
-                  onChange={(e) => setNewRoom(prev => ({
-                    ...prev,
-                    dimensions: { ...prev.dimensions, height: parseFloat(e.target.value) || 0 }
-                  }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <input
-                  type="number"
-                  placeholder="Depth (ft)"
-                  value={newRoom.dimensions.depth || ''}
-                  onChange={(e) => setNewRoom(prev => ({
-                    ...prev,
-                    dimensions: { ...prev.dimensions, depth: parseFloat(e.target.value) || 0 }
-                  }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Auto-Applied Processings Section */}
-          <div className="mt-6 border-t pt-6">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">Auto-Applied Processings</h3>
-                <p className="text-sm text-gray-600">
-                  These processings will be automatically applied to all products in this room
-                </p>
-              </div>
+            
+            {/* Action Button - Prominently Positioned */}
+            <div className="flex space-x-3">
+              {existingRooms.length > 0 && (
+                <button
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setShowProcessingConfig(false);
+                  }}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm"
+                >
+                  Cancel
+                </button>
+              )}
+              
               <button
-                onClick={() => setShowProcessingConfig(!showProcessingConfig)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm"
+                onClick={handleCreateRoom}
+                disabled={!newRoom.type || !newRoom.frontModelId}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-md text-sm font-medium"
               >
-                {showProcessingConfig ? 'Hide' : 'Configure'} Processings
+                {existingRooms.length === 0 ? 'Create Room & Start Quote' : 'Add Room'}
               </button>
             </div>
-
-            {/* Selected Processings Preview */}
-            {newRoom.activatedProcessings.length > 0 && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm font-medium text-green-900 mb-2">
-                  Selected Auto-Applied Processings ({newRoom.activatedProcessings.length}):
-                </p>
-                <p className="text-sm text-green-800">{getSelectedProcessingNames()}</p>
-              </div>
-            )}
-
-            {/* Processing Configuration Panel */}
-            {showProcessingConfig && (
-              <div className="mt-4 max-h-64 overflow-y-auto border border-gray-200 rounded-lg">
-                <div className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {getRoomLevelProcessings().map((processing) => (
-                      <label key={processing.id} className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={newRoom.activatedProcessings.includes(processing.id)}
-                          onChange={() => toggleProcessing(processing.id)}
-                          className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <div className="flex-1">
-                          <h4 className="text-sm font-medium text-gray-900">{processing.name}</h4>
-                          <p className="text-xs text-gray-600">{processing.description}</p>
-                          <p className="text-xs text-green-600 mt-1">
-                            {processing.pricingType === 'percentage' 
-                              ? `${(processing.price * 100).toFixed(0)}% of base price`
-                              : `$${processing.price.toFixed(2)} ${processing.pricingType.replace('_', ' ')}`
-                            }
-                          </p>
-                        </div>
-                      </label>
+          </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Room Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Room Type *
+                  </label>
+                  <select
+                    value={newRoom.type}
+                    onChange={(e) => setNewRoom(prev => ({ ...prev, type: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {ROOM_TYPES.map(type => (
+                      <option key={type} value={type}>{type}</option>
                     ))}
+                  </select>
+                </div>
+
+                {/* Model Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Style *
+                  </label>
+                  <select
+                    value={newRoom.frontModelId}
+                    onChange={(e) => setNewRoom(prev => ({ ...prev, frontModelId: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select a style...</option>
+                    {models.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name} ({model.category})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description (Optional)
+                </label>
+                <textarea
+                  value={newRoom.description}
+                  onChange={(e) => setNewRoom(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Add any special notes or requirements for this room..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  rows={2}
+                />
+              </div>
+
+              {/* Dimensions */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Dimensions (Optional)
+                </label>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <input
+                      type="number"
+                      placeholder="Width (ft)"
+                      value={newRoom.dimensions.width || ''}
+                      onChange={(e) => setNewRoom(prev => ({
+                        ...prev,
+                        dimensions: { ...prev.dimensions, width: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="number"
+                      placeholder="Height (ft)"
+                      value={newRoom.dimensions.height || ''}
+                      onChange={(e) => setNewRoom(prev => ({
+                        ...prev,
+                        dimensions: { ...prev.dimensions, height: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="number"
+                      placeholder="Depth (ft)"
+                      value={newRoom.dimensions.depth || ''}
+                      onChange={(e) => setNewRoom(prev => ({
+                        ...prev,
+                        dimensions: { ...prev.dimensions, depth: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    />
                   </div>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-between mt-6">
-            {existingRooms.length > 0 && (
+              {/* Auto-Applied Processings Section - Collapsed by Default */}
+              <div className="mt-6 border-t pt-6">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">Auto-Applied Processings</h3>
+                    <p className="text-sm text-gray-600">
+                      These processings will be automatically applied to all products in this room
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowProcessingConfig(!showProcessingConfig)}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm"
+                  >
+                    {showProcessingConfig ? 'Hide' : 'Configure'} Processings
+                  </button>
+                </div>
+
+                {/* Selected Processings Preview */}
+                {newRoom.activatedProcessings.length > 0 && (
+                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm font-medium text-green-900 mb-2">
+                      Selected Auto-Applied Processings ({newRoom.activatedProcessings.length}):
+                    </p>
+                    <p className="text-sm text-green-800">{getSelectedProcessingNames()}</p>
+                  </div>
+                )}
+
+                {/* Processing Configuration Panel - Collapsed by Default */}
+                {showProcessingConfig && (
+                  <div className="mt-4 max-h-40 overflow-y-auto border border-gray-200 rounded-lg">
+                    <div className="p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {getRoomLevelProcessings().map((processing) => (
+                          <label key={processing.id} className="flex items-start space-x-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={newRoom.activatedProcessings.includes(processing.id)}
+                              onChange={() => toggleProcessing(processing.id)}
+                              className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-medium text-gray-900 truncate">{processing.name}</h4>
+                              <p className="text-xs text-gray-600 line-clamp-2">{processing.description}</p>
+                              <p className="text-xs text-green-600 mt-1">
+                                {processing.pricingType === 'percentage' 
+                                  ? `${(processing.price * 100).toFixed(0)}% of base price`
+                                  : `$${processing.price.toFixed(2)} ${processing.pricingType.replace('_', ' ')}`
+                                }
+                              </p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Info Section */}
+          {!showCreateForm && existingRooms.length === 0 && (
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <div className="mx-auto w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m11 0a2 2 0 01-2 2H5a2 2 0 01-2-2m5-8a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Create Your First Room</h3>
+              <p className="text-gray-600 max-w-md mx-auto mb-6">
+                Start by creating a room, selecting a style, and configuring automatic processings. 
+                All products added to this room will inherit the selected processings automatically.
+              </p>
               <button
-                onClick={() => {
-                  setShowCreateForm(false);
-                  setShowProcessingConfig(false);
-                }}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
+                onClick={() => setShowCreateForm(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium"
               >
-                Cancel
+                Create Room
               </button>
-            )}
-            
-            <button
-              onClick={handleCreateRoom}
-              disabled={!newRoom.type || !newRoom.frontModelId}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-md ml-auto"
-            >
-              {existingRooms.length === 0 ? 'Create Room & Start Quote' : 'Add Room'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Info Section */}
-      {!showCreateForm && existingRooms.length === 0 && (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <div className="mx-auto w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m11 0a2 2 0 01-2 2H5a2 2 0 01-2-2m5-8a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Create Your First Room</h3>
-          <p className="text-gray-600 max-w-md mx-auto mb-6">
-            Start by creating a room, selecting a style, and configuring automatic processings. 
-            All products added to this room will inherit the selected processings automatically.
-          </p>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium"
-          >
-            Create Room
-          </button>
-        </div>
-      )}
+            </div>
+          )}
     </div>
   );
 };
