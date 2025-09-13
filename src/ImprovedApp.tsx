@@ -364,7 +364,11 @@ function ImprovedApp() {
   };
 
   const handleQuoteUpdate = (updatedQuote: Quote) => {
-    setWorkflow(prev => ({ ...prev, quote: updatedQuote }));
+    setWorkflow(prev => ({ 
+      ...prev, 
+      quote: updatedQuote,
+      products: updatedQuote.items // Keep products array in sync with quote items
+    }));
   };
 
   // Remove product from workflow
