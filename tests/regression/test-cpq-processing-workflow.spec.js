@@ -30,7 +30,7 @@ test.describe('CPQ Processing Workflow', () => {
     await page.click('text=12" Base Cabinet');
     await page.waitForTimeout(3000);
 
-    // Step 5: Click on the product in the "Your Order" section to select it
+    // Step 5: Click on the product in the room section to select it
     const productInOrder = page.locator('h5:has-text("12\\" Base Cabinet")').locator('..');
     await productInOrder.click();
     await page.waitForTimeout(2000);
