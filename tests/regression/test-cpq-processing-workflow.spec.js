@@ -34,6 +34,7 @@ test.describe('CPQ Processing Workflow', () => {
     const productInOrder = page.locator('h5:has-text("12\\" Base Cabinet")').locator('..');
     await productInOrder.click();
     await page.waitForTimeout(2000);
+    
 
     // Step 6: Find and click the Dark Stain Configure button
     const processingContainer = page.locator('div:has-text("Available Processing")').first();

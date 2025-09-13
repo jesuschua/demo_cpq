@@ -105,33 +105,42 @@ const LiveOrderGrid: React.FC<LiveOrderGridProps> = ({
                     return (
                       <div 
                         key={quoteItem.id} 
-                        className={`flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors ${
+                        className={`flex items-center justify-between py-3 px-3 cursor-pointer transition-all duration-200 rounded-lg mx-1 ${
                           isSelected 
-                            ? 'bg-blue-50 border-blue-200' 
-                            : 'hover:bg-gray-50'
+                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-400 shadow-md ring-2 ring-blue-200 ring-opacity-50' 
+                            : 'border-b border-gray-100 last:border-b-0 hover:bg-gray-50 hover:shadow-sm'
                         }`}
-                        onClick={() => onProductSelect(isSelected ? null : quoteItem.productId)}
+                        onClick={() => onProductSelect(isSelected ? null : quoteItem.id)}
                       >
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <h5 className="text-sm font-medium text-gray-900">
-                              {productDetails?.name || 'Unknown Product'}
-                            </h5>
-                            <div className="text-sm text-gray-500">
+                            <div className="flex items-center space-x-2">
+                              <h5 className={`text-sm font-medium ${isSelected ? 'text-blue-900 font-semibold' : 'text-gray-900'}`}>
+                                {productDetails?.name || 'Unknown Product'}
+                              </h5>
+                              {isSelected && (
+                                <div className="flex items-center">
+                                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                            <div className={`text-sm ${isSelected ? 'text-blue-700 font-medium' : 'text-gray-500'}`}>
                               ${quoteItem.basePrice.toFixed(2)} each
                             </div>
                           </div>
                           
                           {/* Processing Information */}
                           {quoteItem.appliedProcessings.length > 0 && (
-                            <div className="mt-2 ml-4 space-y-1">
+                            <div className={`mt-2 ml-4 space-y-1 ${isSelected ? 'bg-blue-25 p-2 rounded border border-blue-200' : ''}`}>
                               {quoteItem.appliedProcessings.map((processing) => {
                                 const processingDetails = getProcessingDetails(processing.processingId);
                                 return (
-                                  <div key={processing.processingId} className="flex items-center justify-between text-xs">
+                                  <div key={processing.processingId} className={`flex items-center justify-between text-xs ${isSelected ? 'text-blue-800' : ''}`}>
                                     <div className="flex items-center space-x-2">
-                                      <span className="text-gray-500">└─</span>
-                                      <span className="text-gray-600">
+                                      <span className={isSelected ? 'text-blue-400' : 'text-gray-500'}>└─</span>
+                                      <span className={isSelected ? 'text-blue-700 font-medium' : 'text-gray-600'}>
                                         {processingDetails?.name || 'Unknown Processing'}
                                         {processing.isInherited && (
                                           <span className="ml-1 text-blue-500">(inherited)</span>
@@ -139,7 +148,7 @@ const LiveOrderGrid: React.FC<LiveOrderGridProps> = ({
                                       </span>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                      <span className="text-green-600 font-medium">
+                                      <span className={`font-medium ${isSelected ? 'text-green-700' : 'text-green-600'}`}>
                                         +${processing.calculatedPrice.toFixed(2)}
                                       </span>
                                       {onProcessingRemove && !processing.isInherited && (

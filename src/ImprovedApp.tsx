@@ -374,11 +374,32 @@ function ImprovedApp() {
     }));
   };
 
-  // Remove product from workflow
+  // Remove product from workflow by product ID
   const removeProduct = (productId: string) => {
     setWorkflow(prev => {
       const currentItems = prev.quote?.items || [];
       const updatedItems = currentItems.filter(item => item.productId !== productId);
+      const updatedQuote = prev.quote ? {
+        ...prev.quote,
+        items: updatedItems,
+        subtotal: updatedItems.reduce((sum, item) => sum + item.totalPrice, 0)
+      } : null;
+      
+      // Use recalculateQuote to properly calculate final total with fees
+      const finalQuote = updatedQuote ? recalculateQuote(updatedQuote) : null;
+      
+      return {
+        ...prev,
+        quote: finalQuote
+      };
+    });
+  };
+
+  // Remove quote item from workflow by quote item ID
+  const removeQuoteItem = (itemId: string) => {
+    setWorkflow(prev => {
+      const currentItems = prev.quote?.items || [];
+      const updatedItems = currentItems.filter(item => item.id !== itemId);
       const updatedQuote = prev.quote ? {
         ...prev.quote,
         items: updatedItems,
@@ -1252,10 +1273,10 @@ function ImprovedApp() {
                       console.log('🔧 setSelectedProductId called with:', productId);
                       setSelectedProductId(productId);
                     }}
-                    onProductRemove={(productId) => {
-                      removeProduct(productId);
+                    onProductRemove={(itemId) => {
+                      removeQuoteItem(itemId);
                       // Clear selection if removed product was selected
-                      if (selectedProductId === productId) {
+                      if (selectedProductId === itemId) {
                         setSelectedProductId(null);
                       }
                     }}
@@ -1305,7 +1326,7 @@ function ImprovedApp() {
                   <AvailableProcessing
                     key={selectedProductId || 'no-selection'}
                     selectedProduct={(() => {
-                      const found = selectedProductId ? (workflow.quote?.items || []).find(p => p.productId === selectedProductId) || null : null;
+                      const found = selectedProductId ? (workflow.quote?.items || []).find(p => p.id === selectedProductId) || null : null;
                       console.log('🔧 AvailableProcessing selectedProduct:', {
                         selectedProductId,
                         found,
