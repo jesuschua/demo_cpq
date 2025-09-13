@@ -51,7 +51,7 @@ const LiveOrderGrid: React.FC<LiveOrderGridProps> = ({
 
   if (products.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow h-full flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow h-96 flex items-center justify-center">
         <div className="text-center text-gray-500">
           <div className="text-4xl mb-4">🛒</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">Your Order is Empty</h3>
@@ -62,7 +62,7 @@ const LiveOrderGrid: React.FC<LiveOrderGridProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow h-full flex flex-col">
+    <div className="bg-white rounded-lg shadow h-96 flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900">Your Order</h3>

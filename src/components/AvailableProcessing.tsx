@@ -53,7 +53,7 @@ const AvailableProcessing: React.FC<AvailableProcessingProps> = ({
 
   if (!selectedProduct || !productDetails) {
     return (
-      <div className="bg-white rounded-lg shadow h-64 flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow h-96 flex items-center justify-center">
         <div className="text-center text-gray-500">
           <div className="text-2xl mb-2">⚙️</div>
           <h3 className="text-sm font-medium text-gray-900 mb-1">Select a Product</h3>
@@ -65,7 +65,7 @@ const AvailableProcessing: React.FC<AvailableProcessingProps> = ({
 
 
   return (
-    <div className="bg-white rounded-lg shadow h-64 flex flex-col">
+    <div className="bg-white rounded-lg shadow h-96 flex flex-col">
       {/* Header */}
       <div className="p-3 border-b border-gray-200">
         <h3 className="text-sm font-semibold text-gray-900">Available Processing</h3>

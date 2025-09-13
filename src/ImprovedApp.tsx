@@ -1406,9 +1406,9 @@ function ImprovedApp() {
 
                 {/* Price Summary - Right Panel (20%) */}
                 <div className="lg:col-span-1">
-                  <div className="bg-white rounded-lg shadow p-4 h-full">
+                  <div className="bg-white rounded-lg shadow h-96 flex flex-col">
                     {/* Header Section */}
-                    <div className="border-b border-gray-200 pb-3 mb-4">
+                    <div className="p-4 border-b border-gray-200">
                       <h3 className="text-sm font-semibold text-gray-900 mb-1">
                         {getCurrentRoom()?.name}
                       </h3>
@@ -1417,8 +1417,9 @@ function ImprovedApp() {
                       </p>
                     </div>
 
-
-                    {/* Price Breakdown by Room */}
+                    {/* Content Area */}
+                    <div className="flex-1 overflow-y-auto p-4">
+                      {/* Price Breakdown by Room */}
                     <div className="border-t border-gray-200 pt-3">
                       <h4 className="text-xs font-medium text-gray-700 mb-2">Price by Room</h4>
                       {workflow.rooms.length > 0 ? (
@@ -1468,7 +1469,8 @@ function ImprovedApp() {
                           <p className="text-xs">No rooms added yet</p>
                   </div>
                       )}
-                </div>
+                    </div>
+                  </div>
               </div>
                 </div>
           </div>
