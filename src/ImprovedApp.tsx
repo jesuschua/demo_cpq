@@ -7,9 +7,10 @@ import EnhancedRoomManager from './components/EnhancedRoomManager';
 import CleanProductCatalog from './components/CleanProductCatalog';
 import LiveOrderGrid from './components/LiveOrderGrid';
 import AvailableProcessing from './components/AvailableProcessing';
+import FinalizePhase from './components/FinalizePhase';
 
-// Define the 4 clear phases (processing integrated into product_config)
-type WorkflowPhase = 'customer_config' | 'room_config' | 'product_config' | 'fees_config';
+// Define the 5 clear phases (processing integrated into product_config, finalize added)
+type WorkflowPhase = 'customer_config' | 'room_config' | 'product_config' | 'fees_config' | 'finalize';
 type AppView = 'dashboard' | 'workflow';
 
 interface WorkflowState {
@@ -52,12 +53,13 @@ function ImprovedApp() {
         return (workflow.quote?.items?.length || 0) > 0;
       }
       case 'fees_config': return workflow.quote !== null;
+      case 'finalize': return false; // Final phase, no progression
       default: return false;
     }
   };
 
   const proceedToNextPhase = () => {
-    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'fees_config'];
+    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'fees_config', 'finalize'];
     const currentIndex = phaseOrder.indexOf(workflow.currentPhase);
     
     if (currentIndex < phaseOrder.length - 1 && canProceedToNextPhase()) {
@@ -90,7 +92,7 @@ function ImprovedApp() {
   };
 
   const goToPreviousPhase = () => {
-    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'fees_config'];
+    const phaseOrder: WorkflowPhase[] = ['customer_config', 'room_config', 'product_config', 'fees_config', 'finalize'];
     const currentIndex = phaseOrder.indexOf(workflow.currentPhase);
     
     if (currentIndex > 0) {
@@ -105,6 +107,7 @@ function ImprovedApp() {
       case 'room_config': return workflow.rooms;
       case 'product_config': return workflow.quote?.items || [];
       case 'fees_config': return workflow.quote;
+      case 'finalize': return workflow.quote;
       default: return null;
     }
   };
@@ -125,7 +128,8 @@ function ImprovedApp() {
       customer_config: 'Customer Configuration',
       room_config: 'Room Configuration', 
       product_config: 'Product Configuration',
-      fees_config: 'Fees & Delivery'
+      fees_config: 'Fees & Delivery',
+      finalize: 'Finalize Order'
     };
     alert(`${phaseNames[workflow.currentPhase]} saved successfully!`);
   };
@@ -1015,6 +1019,10 @@ function ImprovedApp() {
     fees_config: {
       title: 'Phase 4: Fees & Delivery Configuration',
       description: 'Configure tiered delivery fees and environmental fees'
+    },
+    finalize: {
+      title: 'Phase 5: Finalize Order',
+      description: 'Review and finalize your order for printing'
     }
   };
 
@@ -1039,15 +1047,14 @@ function ImprovedApp() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">Kitchen CPQ</h1>
-              <span className="ml-4 text-sm text-gray-500">Improved Workflow</span>
             </div>
             
             {/* Phase Progress Indicator */}
             <div className="flex items-center space-x-2">
-              {(['customer_config', 'room_config', 'product_config', 'fees_config'] as WorkflowPhase[]).map((phase, index) => {
-                const phaseNames = ['Customer', 'Room', 'Products', 'Fees'];
+              {(['customer_config', 'room_config', 'product_config', 'fees_config', 'finalize'] as WorkflowPhase[]).map((phase, index) => {
+                const phaseNames = ['Customer', 'Room', 'Products', 'Fees', 'Finalize'];
                 const isActive = workflow.currentPhase === phase;
-                const isCompleted = (['customer_config', 'room_config', 'product_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) > index;
+                const isCompleted = (['customer_config', 'room_config', 'product_config', 'fees_config', 'finalize'] as WorkflowPhase[]).indexOf(workflow.currentPhase) > index;
                 
                 return (
                   <div key={phase} className="flex items-center">
@@ -1061,7 +1068,7 @@ function ImprovedApp() {
                     <span className={`ml-2 text-sm ${isActive ? 'text-blue-600 font-medium' : 'text-gray-500'}`}>
                       {phaseNames[index]}
                     </span>
-                    {index < 3 && <div className="w-8 h-0.5 bg-gray-300 mx-3" />}
+                    {index < 4 && <div className="w-8 h-0.5 bg-gray-300 mx-3" />}
                   </div>
                 );
               })}
@@ -1475,8 +1482,40 @@ function ImprovedApp() {
           </div>
         )}
 
+        {/* Phase 5: Finalize Order */}
+        {workflow.currentPhase === 'finalize' && workflow.quote && workflow.customer && (
+          <FinalizePhase
+            quote={workflow.quote}
+            customer={workflow.customer}
+            rooms={workflow.rooms}
+            products={products}
+            processings={processings}
+            models={models}
+            onBackToEdit={() => setWorkflow(prev => ({ ...prev, currentPhase: 'fees_config' }))}
+            onPrint={() => {
+              // Generate HTML content and open in new window using blob URL
+              const htmlContent = generateEnhancedPrintHTML();
+              
+              // Create a blob with the HTML content
+              const blob = new Blob([htmlContent], { type: 'text/html' });
+              const blobUrl = URL.createObjectURL(blob);
+              
+              // Open the blob URL in a new window
+              const printWindow = window.open(blobUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+              
+              if (printWindow) {
+                printWindow.focus();
+                
+                // Clean up the blob URL after a delay
+                setTimeout(() => {
+                  URL.revokeObjectURL(blobUrl);
+                }, 10000);
+              }
+            }}
+          />
+        )}
 
-        {/* Phase 5: Fees & Delivery Configuration */}
+        {/* Phase 4: Fees & Delivery Configuration */}
         {workflow.currentPhase === 'fees_config' && workflow.quote && (
           <div>
             <div className="text-center mb-8">
@@ -1670,12 +1709,12 @@ function ImprovedApp() {
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
-                  Phase {(['customer_config', 'room_config', 'product_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1} of 4
+                  Phase {(['customer_config', 'room_config', 'product_config', 'fees_config', 'finalize'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1} of 5
                 </span>
                 <div className="w-32 bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(((['customer_config', 'room_config', 'product_config', 'fees_config'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1) / 4) * 100}%` }}
+                    style={{ width: `${(((['customer_config', 'room_config', 'product_config', 'fees_config', 'finalize'] as WorkflowPhase[]).indexOf(workflow.currentPhase) + 1) / 5) * 100}%` }}
                   ></div>
                 </div>
               </div>
@@ -1725,35 +1764,10 @@ function ImprovedApp() {
                       Save & Return
                     </button>
                     <button
-                      onClick={() => {
-                        // Generate HTML content and open in new window using blob URL
-                        const htmlContent = generateEnhancedPrintHTML();
-                        
-                        // Create a blob with the HTML content
-                        const blob = new Blob([htmlContent], { type: 'text/html' });
-                        const blobUrl = URL.createObjectURL(blob);
-                        
-                        // Open the blob URL in a new window
-                        const printWindow = window.open(blobUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-                        
-                        if (printWindow) {
-                          printWindow.focus();
-                          
-                          // Clean up the blob URL after a delay
-                          setTimeout(() => {
-                            URL.revokeObjectURL(blobUrl);
-                          }, 10000);
-                        }
-                      }}
+                      onClick={proceedToNextPhase}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm"
                     >
-                      Preview Print
-                    </button>
-                    <button
-                      onClick={printQuote}
-                      className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm"
-                    >
-                      Print
+                      Finalize Order →
                     </button>
                   </div>
                 )}
