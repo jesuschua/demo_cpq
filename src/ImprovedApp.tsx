@@ -6,6 +6,7 @@ import CustomerSelector from './components/CustomerSelector';
 import EnhancedRoomManager from './components/EnhancedRoomManager';
 import CleanProductCatalog from './components/CleanProductCatalog';
 import LiveOrderGrid from './components/LiveOrderGrid';
+import OptimizedRoomSelector from './components/OptimizedRoomSelector';
 import AvailableProcessing from './components/AvailableProcessing';
 import FinalizePhase from './components/FinalizePhase';
 
@@ -1192,30 +1193,16 @@ function ImprovedApp() {
                 <div className="flex items-center space-x-6">
                   <h2 className="text-lg font-semibold text-gray-900">Configure Products</h2>
                   
-                  {/* Room Selection */}
+                  {/* Optimized Room Selection */}
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-600">Room:</span>
-                    <div className="flex space-x-1">
-                      {workflow.rooms.map((room) => {
-                  const roomProductCount = (workflow.quote?.items || []).filter(p => p.roomId === room.id).length;
-                  const isActive = workflow.currentRoomId === room.id;
-                  
-                  return (
-                    <button
-                      key={room.id}
-                      onClick={() => handleRoomSelect(room.id)}
-                            className={`px-2 py-1 rounded text-sm border transition-all ${
-                        isActive 
-                                ? 'border-blue-500 bg-blue-50 text-blue-900 font-medium' 
-                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700'
-                            }`}
-                          >
-                            {room.name} ({roomProductCount})
-                    </button>
-                  );
-                })}
-              </div>
-              {!workflow.currentRoomId && (
+                    <OptimizedRoomSelector
+                      rooms={workflow.rooms}
+                      currentRoomId={workflow.currentRoomId}
+                      quoteItems={workflow.quote?.items || []}
+                      onRoomSelect={handleRoomSelect}
+                    />
+                    {!workflow.currentRoomId && (
                       <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
                         Select room
                       </span>
