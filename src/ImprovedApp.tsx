@@ -3,7 +3,7 @@ import { Quote, Customer, Room, QuoteItem } from './types';
 import { customers, models, products, processings } from './data/sampleData';
 import MinimalDashboard from './components/MinimalDashboard';
 import CustomerSelector from './components/CustomerSelector';
-import EnhancedRoomManager from './components/EnhancedRoomManager';
+import HorizontalRoomManager from './components/HorizontalRoomManager';
 import CleanProductCatalog from './components/CleanProductCatalog';
 import LiveOrderGrid from './components/LiveOrderGrid';
 import OptimizedRoomSelector from './components/OptimizedRoomSelector';
@@ -1162,15 +1162,30 @@ function ImprovedApp() {
 
         {/* Phase 2: Room Configuration */}
         {workflow.currentPhase === 'room_config' && (
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Configure Room</h2>
-              <p className="text-gray-600">
-                Customer: <span className="font-medium">{workflow.customer?.name}</span>
-              </p>
+          <div className="max-w-7xl mx-auto">
+            {/* Single Cohesive Header Bar - Matching Configure Products Style */}
+            <div className="bg-white rounded-lg shadow mb-4 p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-6">
+                  <h2 className="text-lg font-semibold text-gray-900">Configure Room</h2>
+                  
+                  {/* Customer Info */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Customer:</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {workflow.customer?.name}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Right side - Room count */}
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-500">({workflow.rooms.length} rooms)</span>
+                </div>
+              </div>
             </div>
 
-            <EnhancedRoomManager
+            <HorizontalRoomManager
               models={models}
               processings={processings}
               onCreateQuote={handleRoomCreate}
