@@ -107,36 +107,49 @@ const HorizontalRoomManager: React.FC<HorizontalRoomManagerProps> = ({
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow h-96 flex flex-col">
             <div className="p-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
-                {editingRoomId ? 'Edit Room' : 'Add New Room'}
-              </h2>
-              
-              {/* Action Buttons */}
-              <div className="flex space-x-2">
-                {editingRoomId && (
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {editingRoomId ? 'Edit Room' : 'Room Details'}
+                </h2>
+                
+                {/* Add Room Button - Only show when not editing */}
+                {!editingRoomId && (
                   <button
-                    onClick={() => {
-                      setEditingRoomId(null);
-                      setNewRoom({
-                        type: 'Kitchen',
-                        description: '',
-                        frontModelId: '',
-                        dimensions: { width: 0, height: 0, depth: 0 }
-                      });
-                    }}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded text-xs"
+                    onClick={handleCreateRoom}
+                    disabled={!newRoom.type || !newRoom.frontModelId}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-md text-sm font-medium"
                   >
-                    Cancel
+                    Add Room
                   </button>
                 )}
                 
-                <button
-                  onClick={handleCreateRoom}
-                  disabled={!newRoom.type || !newRoom.frontModelId}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-1 rounded text-xs font-medium"
-                >
-                  {editingRoomId ? 'Update Room' : 'Add Room'}
-                </button>
+                {/* Action Buttons - Only show when editing */}
+                {editingRoomId && (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => {
+                        setEditingRoomId(null);
+                        setNewRoom({
+                          type: 'Kitchen',
+                          description: '',
+                          frontModelId: '',
+                          dimensions: { width: 0, height: 0, depth: 0 }
+                        });
+                      }}
+                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded text-xs"
+                    >
+                      Cancel
+                    </button>
+                    
+                    <button
+                      onClick={handleCreateRoom}
+                      disabled={!newRoom.type || !newRoom.frontModelId}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-1 rounded text-xs font-medium"
+                    >
+                      Update Room
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
