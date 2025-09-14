@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Model, Room, Processing } from '../types';
+import ProcessingModal from './ProcessingModal';
 
 interface HorizontalRoomManagerProps {
   models: Model[];
@@ -25,6 +26,9 @@ const HorizontalRoomManager: React.FC<HorizontalRoomManagerProps> = ({
   currentRoomId
 }) => {
   const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProcessing, setSelectedProcessing] = useState<Processing | null>(null);
+  
   const [newRoom, setNewRoom] = useState(() => {
     return {
       type: 'Kitchen',
@@ -78,16 +82,57 @@ const HorizontalRoomManager: React.FC<HorizontalRoomManagerProps> = ({
     const room = existingRooms.find(r => r.id === roomId);
     if (!room) return;
 
-    const updatedProcessings = room.activatedProcessings.includes(processingId)
-      ? room.activatedProcessings.filter(id => id !== processingId)
-      : [...room.activatedProcessings, processingId];
+    const processing = processings.find(p => p.id === processingId);
+    if (!processing) return;
 
+    const isCurrentlyActivated = room.activatedProcessings.includes(processingId);
+
+    if (processing.options && processing.options.length > 0) {
+      // Complex processing with options - open modal for configuration
+      if (!isCurrentlyActivated) {
+        setSelectedProcessing(processing);
+        setModalOpen(true);
+      } else {
+        // Remove processing directly if unchecking
+        const updatedProcessings = room.activatedProcessings.filter(id => id !== processingId);
+        const updatedRoom = {
+          ...room,
+          activatedProcessings: updatedProcessings
+        };
+        onEditRoom?.(updatedRoom);
+      }
+    } else {
+      // Simple processing - toggle directly
+      const updatedProcessings = room.activatedProcessings.includes(processingId)
+        ? room.activatedProcessings.filter(id => id !== processingId)
+        : [...room.activatedProcessings, processingId];
+
+      const updatedRoom = {
+        ...room,
+        activatedProcessings: updatedProcessings
+      };
+
+      onEditRoom?.(updatedRoom);
+    }
+  };
+
+  // Handle modal form submission
+  const handleModalApply = (productId: string, processing: Processing, selectedOptions: { [optionId: string]: any }) => {
+    if (!currentRoomId) return;
+    
+    const room = existingRooms.find(r => r.id === currentRoomId);
+    if (!room) return;
+
+    // Add the processing to the room
+    const updatedProcessings = [...room.activatedProcessings, processing.id];
     const updatedRoom = {
       ...room,
       activatedProcessings: updatedProcessings
     };
 
     onEditRoom?.(updatedRoom);
+    setModalOpen(false);
+    setSelectedProcessing(null);
   };
 
   // Get processings that are applicable to room-level inheritance
@@ -102,6 +147,7 @@ const HorizontalRoomManager: React.FC<HorizontalRoomManagerProps> = ({
   // This function is no longer needed since processing configuration is handled per room
 
   return (
+    <>
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-96">
         {/* Left Pane - Add New Room */}
         <div className="lg:col-span-1">
@@ -387,6 +433,7 @@ const HorizontalRoomManager: React.FC<HorizontalRoomManagerProps> = ({
                         <input
                           type="checkbox"
                           checked={isActivated}
+                          disabled={!currentRoomId}
                           onChange={() => handleProcessingToggle(currentRoomId, processing.id)}
                           className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                         />
@@ -410,6 +457,16 @@ const HorizontalRoomManager: React.FC<HorizontalRoomManagerProps> = ({
           </div>
         </div>
     </div>
+
+    {/* Processing Modal */}
+    <ProcessingModal
+      isOpen={modalOpen}
+      onClose={() => setModalOpen(false)}
+      processing={selectedProcessing}
+      selectedProduct={null}
+      onApply={handleModalApply}
+    />
+    </>
   );
 };
 
