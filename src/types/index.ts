@@ -158,10 +158,10 @@ export interface Quote {
   totalDiscount: number;
   // Fee fields
   deliveryFees: {
-    tier1: number; // Up to $500
-    tier2: number; // $500 - $1000
-    tier3: number; // $1000+
-    calculated: number; // Actual fee based on subtotal
+    type: 'curb-side' | 'ground-floor' | '2nd-4th-floor' | '5th-8th-floor' | 'special';
+    customAmount?: number; // For special delivery type
+    wasteDisposal: boolean;
+    calculated: number; // Actual delivery fee
   };
   environmentalFees: {
     carbonOffsetPercentage: number;
