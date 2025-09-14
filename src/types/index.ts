@@ -158,8 +158,9 @@ export interface Quote {
   totalDiscount: number;
   // Fee fields
   deliveryFees: {
-    type: 'curb-side' | 'ground-floor' | '2nd-4th-floor' | '5th-8th-floor' | 'special';
-    customAmount?: number; // For special delivery type
+    type: 'none' | 'curb-side' | 'ground-floor' | '2nd-4th-floor' | '5th-8th-floor' | 'special';
+    amount: number; // User-editable delivery amount
+    customAmount?: number; // For special delivery type (legacy)
     wasteDisposal: boolean;
     calculated: number; // Actual delivery fee
   };

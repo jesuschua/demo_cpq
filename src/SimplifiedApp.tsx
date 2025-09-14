@@ -46,7 +46,8 @@ function SimplifiedApp() {
       subtotal: 0,
       totalDiscount: 0,
       deliveryFees: {
-        type: 'curb-side',
+        type: 'none',
+        amount: 0,
         customAmount: 100,
         wasteDisposal: false,
         calculated: 0

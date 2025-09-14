@@ -150,8 +150,30 @@ const FinalizePhase: React.FC<FinalizePhaseProps> = ({
 
         {/* Price Summary */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-          <div className="flex justify-between items-center text-lg font-semibold">
-            <span>Total: ${quote.finalTotal.toFixed(2)}</span>
+          <div className="space-y-2">
+            {/* Subtotal */}
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Subtotal:</span>
+              <span className="text-sm font-medium">${quote.subtotal.toFixed(2)}</span>
+            </div>
+
+            {/* Delivery Fee - Always show for documentation */}
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Delivery Fee:</span>
+              <span className="text-sm font-medium">${quote.deliveryFees.calculated.toFixed(2)}</span>
+            </div>
+
+            {/* Environmental Fees - Always show for documentation */}
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Environmental Fees:</span>
+              <span className="text-sm font-medium">${quote.environmentalFees.calculated.toFixed(2)}</span>
+            </div>
+
+            {/* Total */}
+            <div className="flex justify-between items-center pt-2 border-t border-gray-300">
+              <span className="text-lg font-semibold text-gray-900">Total:</span>
+              <span className="text-lg font-bold text-blue-600">${quote.finalTotal.toFixed(2)}</span>
+            </div>
           </div>
         </div>
       </div>

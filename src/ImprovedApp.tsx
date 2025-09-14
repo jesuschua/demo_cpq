@@ -150,7 +150,8 @@ function ImprovedApp() {
       subtotal: 0,
       totalDiscount: 0,
       deliveryFees: {
-        type: 'curb-side',
+        type: 'none',
+        amount: 0,
         customAmount: 100,
         wasteDisposal: false,
         calculated: 0
@@ -179,29 +180,8 @@ function ImprovedApp() {
     const customerDiscount = subtotal * (quote.customerDiscount / 100);
     const totalDiscount = customerDiscount + quote.orderDiscount;
     
-    // Calculate delivery fees based on delivery type
-    let deliveryFee = 0;
-    const deliveryType = quote.deliveryFees.type;
-    
-    switch (deliveryType) {
-      case 'curb-side':
-        deliveryFee = 0; // Free curb-side delivery
-        break;
-      case 'ground-floor':
-        deliveryFee = 25;
-        break;
-      case '2nd-4th-floor':
-        deliveryFee = 50;
-        break;
-      case '5th-8th-floor':
-        deliveryFee = 75;
-        break;
-      case 'special':
-        deliveryFee = quote.deliveryFees.customAmount || 0;
-        break;
-      default:
-        deliveryFee = 0;
-    }
+    // Calculate delivery fees based on user-editable amount
+    let deliveryFee = quote.deliveryFees.amount || 0;
     
     // Add waste disposal fee if selected
     if (quote.deliveryFees.wasteDisposal) {
@@ -1594,75 +1574,112 @@ function ImprovedApp() {
                 <div className="flex-1 overflow-y-auto p-4">
                   <div className="space-y-4">
                     {/* Delivery Type Selection */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Delivery Type</label>
-                      <div className="space-y-2">
-                        {[
-                          { value: 'curb-side', label: 'Curb-side Delivery', price: '$0', description: 'Free delivery to curb' },
-                          { value: 'ground-floor', label: 'Carry-in Ground Floor', price: '$25', description: 'Delivery and setup on ground floor' },
-                          { value: '2nd-4th-floor', label: 'Carry-in 2nd to 4th Floor', price: '$50', description: 'Delivery and setup up to 4th floor' },
-                          { value: '5th-8th-floor', label: 'Carry-in 5th to 8th Floor', price: '$75', description: 'Delivery and setup up to 8th floor' },
-                          { value: 'special', label: 'Special Delivery', price: 'Custom', description: 'Custom delivery requirements' }
-                        ].map((option) => (
-                          <label key={option.value} className="flex items-center p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                            <input
-                              type="radio"
-                              name="deliveryType"
-                              value={option.value}
-                              checked={workflow.quote?.deliveryFees.type === option.value}
-                              onChange={(e) => {
-                                setWorkflow(prev => ({
-                                  ...prev,
-                                  quote: prev.quote ? {
-                                    ...prev.quote,
-                                    deliveryFees: { 
-                                      ...prev.quote.deliveryFees, 
-                                      type: e.target.value as any,
-                                      customAmount: e.target.value === 'special' ? prev.quote.deliveryFees.customAmount : undefined
-                                    }
-                                  } : null
-                                }));
-                              }}
-                              className="mr-2 text-blue-600 focus:ring-blue-500"
-                            />
-                            <div className="flex-1">
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium text-gray-900">{option.label}</span>
-                                <span className="text-xs font-semibold text-blue-600">{option.price}</span>
-                              </div>
-                              <p className="text-xs text-gray-600">{option.description}</p>
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Custom Amount Input for Special Delivery */}
-                    {workflow.quote?.deliveryFees.type === 'special' && (
+                    <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Custom Delivery Amount ($)</label>
-                        <input
-                          type="number"
-                          step="50"
-                          min="100"
-                          value={workflow.quote?.deliveryFees.customAmount || 100}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Type</label>
+                        <select
+                          value={workflow.quote?.deliveryFees.type || 'none'}
                           onChange={(e) => {
-                            const value = parseFloat(e.target.value) || 100;
-                            const validatedValue = Math.max(100, value); // Ensure minimum of $100
+                            const newType = e.target.value as any;
+                            let newAmount = 0;
+                            
+                            // Set default amount based on delivery type
+                            switch (newType) {
+                              case 'none':
+                                newAmount = 0;
+                                break;
+                              case 'curb-side':
+                                newAmount = 10;
+                                break;
+                              case 'ground-floor':
+                                newAmount = 25;
+                                break;
+                              case '2nd-4th-floor':
+                                newAmount = 50;
+                                break;
+                              case '5th-8th-floor':
+                                newAmount = 75;
+                                break;
+                              case 'special':
+                                newAmount = workflow.quote?.deliveryFees.customAmount || 100;
+                                break;
+                              default:
+                                newAmount = 0;
+                            }
+                            
                             setWorkflow(prev => ({
                               ...prev,
                               quote: prev.quote ? {
                                 ...prev.quote,
-                                deliveryFees: { ...prev.quote.deliveryFees, customAmount: validatedValue }
+                                deliveryFees: { 
+                                  ...prev.quote.deliveryFees, 
+                                  type: newType,
+                                  customAmount: newType === 'special' ? newAmount : undefined,
+                                  amount: newAmount
+                                }
                               } : null
                             }));
                           }}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                          placeholder="Minimum $100 (increments of $50)"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Minimum amount: $100, increments of $50</p>
+                        >
+                          <option value="none">No Delivery</option>
+                          <option value="curb-side">Curb-side Delivery</option>
+                          <option value="ground-floor">Carry-in Ground Floor</option>
+                          <option value="2nd-4th-floor">Carry-in 2nd to 4th Floor</option>
+                          <option value="5th-8th-floor">Carry-in 5th to 8th Floor</option>
+                          <option value="special">Special Delivery</option>
+                        </select>
                       </div>
-                    )}
+                      
+                      {/* Delivery Amount Field - Always Visible */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Amount ($)</label>
+                        <input
+                          type="number"
+                          step={workflow.quote?.deliveryFees.type === 'special' ? "50" : "1"}
+                          min={workflow.quote?.deliveryFees.type === 'special' ? 100 : 0}
+                          value={workflow.quote?.deliveryFees.amount || 0}
+                          readOnly={workflow.quote?.deliveryFees.type !== 'special'}
+                          onChange={(e) => {
+                            if (workflow.quote?.deliveryFees.type !== 'special') return;
+                            
+                            const value = parseFloat(e.target.value) || 100;
+                            const validatedValue = Math.max(100, value);
+                            
+                            setWorkflow(prev => {
+                              if (!prev.quote) return prev;
+                              
+                              const updatedQuote = {
+                                ...prev.quote,
+                                deliveryFees: { 
+                                  ...prev.quote.deliveryFees, 
+                                  amount: validatedValue,
+                                  customAmount: validatedValue
+                                }
+                              };
+                              
+                              return {
+                                ...prev,
+                                quote: recalculateQuote(updatedQuote)
+                              };
+                            });
+                          }}
+                          className={`w-full px-3 py-2 border rounded-md text-sm ${
+                            workflow.quote?.deliveryFees.type === 'special' 
+                              ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500' 
+                              : 'border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed'
+                          }`}
+                          placeholder={workflow.quote?.deliveryFees.type === 'special' ? 'Minimum $100 (increments of $50)' : 'Fixed amount'}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {workflow.quote?.deliveryFees.type === 'special' 
+                            ? 'Minimum amount: $100, increments of $50' 
+                            : 'Fixed amount based on delivery type'
+                          }
+                        </p>
+                      </div>
+                    </div>
+
 
                     {/* Waste Disposal Checkbox */}
                     <div className="flex items-center p-2 border border-gray-200 rounded-lg">
@@ -1706,40 +1723,48 @@ function ImprovedApp() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Carbon Offset Fee (%)</label>
                       <input
                         type="number"
-                        step="0.01"
+                        step="5"
+                        min="0"
                         value={workflow.quote?.environmentalFees.carbonOffsetPercentage || 0}
                         onChange={(e) => {
                           const value = parseFloat(e.target.value) || 0;
+                          const validatedValue = Math.max(0, value); // Ensure no negative values
                           setWorkflow(prev => ({
                             ...prev,
                             quote: prev.quote ? {
                               ...prev.quote,
-                              environmentalFees: { ...prev.quote.environmentalFees, carbonOffsetPercentage: value }
+                              environmentalFees: { ...prev.quote.environmentalFees, carbonOffsetPercentage: validatedValue }
                             } : null
                           }));
                         }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        placeholder="Enter carbon offset percentage (increments of 5%)"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Increments of 5%, minimum 0%</p>
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Sustainability Fee ($)</label>
                       <input
                         type="number"
-                        step="0.01"
+                        step="50"
+                        min="0"
                         value={workflow.quote?.environmentalFees.sustainabilityFee || 0}
                         onChange={(e) => {
                           const value = parseFloat(e.target.value) || 0;
+                          const validatedValue = Math.max(0, value); // Ensure no negative values
                           setWorkflow(prev => ({
                             ...prev,
                             quote: prev.quote ? {
                               ...prev.quote,
-                              environmentalFees: { ...prev.quote.environmentalFees, sustainabilityFee: value }
+                              environmentalFees: { ...prev.quote.environmentalFees, sustainabilityFee: validatedValue }
                             } : null
                           }));
                         }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        placeholder="Enter sustainability fee (increments of $50)"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Increments of $50, minimum $0</p>
                     </div>
                     
                     <div className="flex items-center p-2 border border-gray-200 rounded-lg">
