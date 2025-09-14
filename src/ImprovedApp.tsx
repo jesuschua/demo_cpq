@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Quote, Customer, Room, QuoteItem } from './types';
 import { customers, models, products, processings } from './data/sampleData';
+import { formatProcessingDisplay } from './utils/processingUtils';
 import MinimalDashboard from './components/MinimalDashboard';
 import CustomerSelector from './components/CustomerSelector';
 import HorizontalRoomManager from './components/HorizontalRoomManager';
@@ -274,12 +275,69 @@ function ImprovedApp() {
   };
 
   const handleRoomEdit = (editedRoom: Room) => {
-    setWorkflow(prev => ({
-      ...prev,
-      rooms: prev.rooms.map(room => 
+    setWorkflow(prev => {
+      // Update the room
+      const updatedRooms = prev.rooms.map(room => 
         room.id === editedRoom.id ? editedRoom : room
-      )
-    }));
+      );
+
+      // Update inherited processings in products that belong to this room
+      const updatedItems = prev.quote?.items.map(item => {
+        if (item.roomId === editedRoom.id) {
+          // Find the product to check if processing is applicable
+          const product = products.find(p => p.id === item.productId);
+          if (!product) return item;
+
+          // Update inherited processings with new room processing options
+          const updatedAppliedProcessings = item.appliedProcessings.map(ap => {
+            if (ap.isInherited) {
+              // Find the corresponding room processing
+              const roomProcessing = editedRoom.activatedProcessings.find(
+                rp => rp.processingId === ap.processingId
+              );
+              
+              if (roomProcessing) {
+                // Update with new selected options
+                return {
+                  ...ap,
+                  selectedOptions: roomProcessing.selectedOptions || {}
+                };
+              }
+            }
+            return ap;
+          });
+
+          // Recalculate total price
+          const processingTotal = updatedAppliedProcessings.reduce((sum, ap) => sum + ap.calculatedPrice, 0);
+          const newTotalPrice = (item.basePrice + processingTotal) * item.quantity;
+
+          return {
+            ...item,
+            appliedProcessings: updatedAppliedProcessings,
+            totalPrice: newTotalPrice
+          };
+        }
+        return item;
+      }) || [];
+
+      // Recalculate quote totals
+      const subtotal = updatedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+      const customerDiscountAmount = subtotal * (prev.quote?.customerDiscount || 0) / 100;
+      const finalTotal = subtotal - customerDiscountAmount - (prev.quote?.orderDiscount || 0);
+
+      const updatedQuote = prev.quote ? {
+        ...prev.quote,
+        items: updatedItems,
+        subtotal,
+        finalTotal
+      } : null;
+
+      return {
+        ...prev,
+        rooms: updatedRooms,
+        quote: updatedQuote
+      };
+    });
   };
 
   const handleRoomSelect = (roomId: string) => {
@@ -307,8 +365,8 @@ function ImprovedApp() {
 
     // Apply room-level inherited processings
     const inheritedProcessings = currentRoom.activatedProcessings
-      .map((processingId: string) => {
-        const processing = processings.find(p => p.id === processingId);
+      .map((ap: any) => {
+        const processing = processings.find(p => p.id === ap.processingId);
         if (!processing) return null;
         
         // Check if this processing is applicable to this product category
@@ -333,7 +391,8 @@ function ImprovedApp() {
           processingId: processing.id,
           calculatedPrice,
           isInherited: true,
-          appliedDate: new Date().toISOString()
+          appliedDate: new Date().toISOString(),
+          selectedOptions: ap.selectedOptions || {}
         };
       })
       .filter(Boolean);
@@ -725,7 +784,10 @@ function ImprovedApp() {
               const roomItems = itemsByRoom[room.id] || [];
               const roomModel = getModel(room.frontModelId);
               const roomProcessings = room.activatedProcessings
-                .map(id => getProcessing(id))
+                .map(ap => {
+                  const processing = getProcessing(ap.processingId);
+                  return processing ? { processing, selectedOptions: ap.selectedOptions } : null;
+                })
                 .filter(Boolean);
               
               return `
@@ -740,9 +802,10 @@ function ImprovedApp() {
                     <div class="room-auto-processings">
                       <h4>🏠 Auto-Applied Room Processings</h4>
                       <div class="auto-processing-list">
-                        ${roomProcessings.map(processing => 
-                          `<span class="auto-processing-tag">${processing?.name || 'Unknown'}</span>`
-                        ).join('')}
+                        ${roomProcessings.map((item: any) => {
+                          const displayName = formatProcessingDisplay(item.processing, item.selectedOptions);
+                          return `<span class="auto-processing-tag">${displayName}</span>`;
+                        }).join('')}
                       </div>
                       <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
                         These processings are automatically applied to all applicable products in this room.
@@ -788,44 +851,26 @@ function ImprovedApp() {
                                 ${inheritedProcessings.map((ap: any) => {
                                   const processing = getProcessing(ap.processingId);
                                   const selectedOptions = ap.selectedOptions || {};
+                                  const displayName = processing ? formatProcessingDisplay(processing, selectedOptions) : 'Unknown';
                                   return `
                                     <div class="processing-item">
                                       <div>
-                                        <span class="processing-inherited">${processing?.name || 'Unknown'}</span>
+                                        <span class="processing-inherited">${displayName}</span>
                                         <span>+$${ap.calculatedPrice.toFixed(2)}</span>
                                       </div>
-                                      ${Object.keys(selectedOptions).length > 0 ? `
-                                        <div style="margin-top: 4px; font-size: 10px; color: #6b7280;">
-                                          ${Object.entries(selectedOptions).map(([optionId, value]) => {
-                                            const option = processing?.options?.find(o => o.id === optionId);
-                                            if (!option) return '';
-                                            const choice = option.choices?.find(c => c.value === value);
-                                            return `<div>• ${option.name}: ${choice?.label || value}</div>`;
-                                          }).join('')}
-                                        </div>
-                                      ` : ''}
                                     </div>
                                   `;
                                 }).join('')}
                                 ${manualProcessings.map((ap: any) => {
                                   const processing = getProcessing(ap.processingId);
                                   const selectedOptions = ap.selectedOptions || {};
+                                  const displayName = processing ? formatProcessingDisplay(processing, selectedOptions) : 'Unknown';
                                   return `
                                     <div class="processing-item">
                                       <div>
-                                        <span class="processing-manual">${processing?.name || 'Unknown'}</span>
+                                        <span class="processing-manual">${displayName}</span>
                                         <span>+$${ap.calculatedPrice.toFixed(2)}</span>
                                       </div>
-                                      ${Object.keys(selectedOptions).length > 0 ? `
-                                        <div style="margin-top: 4px; font-size: 10px; color: #6b7280;">
-                                          ${Object.entries(selectedOptions).map(([optionId, value]) => {
-                                            const option = processing?.options?.find(o => o.id === optionId);
-                                            if (!option) return '';
-                                            const choice = option.choices?.find(c => c.value === value);
-                                            return `<div>• ${option.name}: ${choice?.label || value}</div>`;
-                                          }).join('')}
-                                        </div>
-                                      ` : ''}
                                     </div>
                                   `;
                                 }).join('')}

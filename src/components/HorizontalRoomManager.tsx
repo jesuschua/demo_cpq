@@ -85,35 +85,36 @@ const HorizontalRoomManager: React.FC<HorizontalRoomManagerProps> = ({
     const processing = processings.find(p => p.id === processingId);
     if (!processing) return;
 
-    const isCurrentlyActivated = room.activatedProcessings.includes(processingId);
+    const isCurrentlyActivated = room.activatedProcessings.some(p => p.processingId === processingId);
 
     if (processing.options && processing.options.length > 0) {
       // Complex processing with options - open modal for configuration
       if (!isCurrentlyActivated) {
         setSelectedProcessing(processing);
         setModalOpen(true);
-      } else {
-        // Remove processing directly if unchecking
-        const updatedProcessings = room.activatedProcessings.filter(id => id !== processingId);
-        const updatedRoom = {
-          ...room,
-          activatedProcessings: updatedProcessings
-        };
-        onEditRoom?.(updatedRoom);
-      }
-    } else {
-      // Simple processing - toggle directly
-      const updatedProcessings = room.activatedProcessings.includes(processingId)
-        ? room.activatedProcessings.filter(id => id !== processingId)
-        : [...room.activatedProcessings, processingId];
+          } else {
+            // Remove processing directly if unchecking
+            const updatedProcessings = room.activatedProcessings.filter(p => p.processingId !== processingId);
+            const updatedRoom = {
+              ...room,
+              activatedProcessings: updatedProcessings
+            };
+            onEditRoom?.(updatedRoom);
+          }
+        } else {
+          // Simple processing - toggle directly
+          const isCurrentlyActivated = room.activatedProcessings.some(p => p.processingId === processingId);
+          const updatedProcessings = isCurrentlyActivated
+            ? room.activatedProcessings.filter(p => p.processingId !== processingId)
+            : [...room.activatedProcessings, { processingId }];
 
-      const updatedRoom = {
-        ...room,
-        activatedProcessings: updatedProcessings
-      };
+          const updatedRoom = {
+            ...room,
+            activatedProcessings: updatedProcessings
+          };
 
-      onEditRoom?.(updatedRoom);
-    }
+          onEditRoom?.(updatedRoom);
+        }
   };
 
   // Handle modal form submission
@@ -123,8 +124,11 @@ const HorizontalRoomManager: React.FC<HorizontalRoomManagerProps> = ({
     const room = existingRooms.find(r => r.id === currentRoomId);
     if (!room) return;
 
-    // Add the processing to the room
-    const updatedProcessings = [...room.activatedProcessings, processing.id];
+    // Add the processing to the room with selected options
+    const updatedProcessings = [...room.activatedProcessings, {
+      processingId: processing.id,
+      selectedOptions: selectedOptions
+    }];
     const updatedRoom = {
       ...room,
       activatedProcessings: updatedProcessings
@@ -312,7 +316,7 @@ const HorizontalRoomManager: React.FC<HorizontalRoomManagerProps> = ({
                 {existingRooms.map((room) => {
                   const model = models.find(m => m.id === room.frontModelId);
                   const activatedProcessingNames = room.activatedProcessings
-                    .map(id => processings.find(p => p.id === id)?.name)
+                    .map(ap => processings.find(p => p.id === ap.processingId)?.name)
                     .filter(Boolean);
                   
                   return (
@@ -424,9 +428,9 @@ const HorizontalRoomManager: React.FC<HorizontalRoomManagerProps> = ({
                 </div>
                 
                 <div className="space-y-2 flex-1 overflow-y-auto pr-2">
-                  {getRoomLevelProcessings().map((processing) => {
-                    const room = existingRooms.find(r => r.id === currentRoomId);
-                    const isActivated = room?.activatedProcessings.includes(processing.id) || false;
+                          {getRoomLevelProcessings().map((processing) => {
+                            const room = existingRooms.find(r => r.id === currentRoomId);
+                            const isActivated = room?.activatedProcessings.some(p => p.processingId === processing.id) || false;
                     
                     return (
                       <label key={processing.id} className="flex items-start space-x-3 p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">

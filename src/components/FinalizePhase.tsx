@@ -1,5 +1,6 @@
 import React from 'react';
 import { Quote, Customer, Room, Product, Processing, Model } from '../types';
+import { formatProcessingDisplay } from '../utils/processingUtils';
 
 interface FinalizePhaseProps {
   quote: Quote;
@@ -121,11 +122,13 @@ const FinalizePhase: React.FC<FinalizePhaseProps> = ({
                                     const processingDetails = getProcessing(processing.processingId);
                                     if (!processingDetails) return null;
                                     
+                                    const displayName = formatProcessingDisplay(processingDetails, processing.selectedOptions);
+                                    
                                     return (
                                       <div key={index} className="flex justify-between items-center text-xs">
                                         <span className={`${processing.isInherited ? 'text-green-600' : 'text-purple-600'}`}>
                                           {processing.isInherited ? '🏠 ' : '⚙️ '}
-                                          {processingDetails.name}
+                                          {displayName}
                                         </span>
                                         <span className="font-medium">${processing.calculatedPrice.toFixed(2)}</span>
                                       </div>
