@@ -115,7 +115,10 @@ export interface Room {
   name: string;
   description: string;
   frontModelId: string; // Determines colors and styles for all products in room
-  activatedProcessings: string[]; // Processing IDs that are automatically applied to all products in this room
+  activatedProcessings: {
+    processingId: string;
+    selectedOptions?: { [optionId: string]: any };
+  }[]; // Processing IDs with selected options that are automatically applied to all products in this room
   dimensions?: {
     width: number;
     height: number;

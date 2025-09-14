@@ -29,7 +29,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
     }
   }, [processing]);
 
-  if (!isOpen || !processing || !selectedProduct) {
+  if (!isOpen || !processing) {
     return null;
   }
 
@@ -42,7 +42,9 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onApply(selectedProduct.id, processing, formData);
+    // For room-level processing, selectedProduct is null, so we use a placeholder ID
+    const productId = selectedProduct ? selectedProduct.id : 'room-processing';
+    onApply(productId, processing, formData);
     onClose();
   };
 
@@ -161,7 +163,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" role="dialog" aria-modal="true">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">

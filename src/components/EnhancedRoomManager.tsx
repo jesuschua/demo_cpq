@@ -32,7 +32,7 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
       type: 'Kitchen',
       description: '',
       frontModelId: '',
-      activatedProcessings: [] as string[],
+      activatedProcessings: [] as { processingId: string; selectedOptions?: { [optionId: string]: any } }[],
       dimensions: { width: 0, height: 0, depth: 0 }
     };
   });
@@ -88,9 +88,9 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
   const toggleProcessing = (processingId: string) => {
     setNewRoom(prev => ({
       ...prev,
-      activatedProcessings: prev.activatedProcessings.includes(processingId)
-        ? prev.activatedProcessings.filter(id => id !== processingId)
-        : [...prev.activatedProcessings, processingId]
+      activatedProcessings: prev.activatedProcessings.some(ap => ap.processingId === processingId)
+        ? prev.activatedProcessings.filter(ap => ap.processingId !== processingId)
+        : [...prev.activatedProcessings, { processingId }]
     }));
   };
 
@@ -106,7 +106,7 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
 
   const getSelectedProcessingNames = () => {
     return newRoom.activatedProcessings
-      .map(id => processings.find(p => p.id === id)?.name)
+      .map(ap => processings.find(p => p.id === ap.processingId)?.name)
       .filter(Boolean)
       .join(', ');
   };
@@ -121,7 +121,7 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
             {existingRooms.map((room) => {
               const model = models.find(m => m.id === room.frontModelId);
               const activatedProcessingNames = room.activatedProcessings
-                .map(id => processings.find(p => p.id === id)?.name)
+                .map(ap => processings.find(p => p.id === ap.processingId)?.name)
                 .filter(Boolean);
               
               return (
@@ -388,7 +388,7 @@ const EnhancedRoomManager: React.FC<EnhancedRoomManagerProps> = ({
                           <label key={processing.id} className="flex items-start space-x-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={newRoom.activatedProcessings.includes(processing.id)}
+                              checked={newRoom.activatedProcessings.some(ap => ap.processingId === processing.id)}
                               onChange={() => toggleProcessing(processing.id)}
                               className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                             />

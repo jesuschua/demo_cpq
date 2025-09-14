@@ -1,5 +1,6 @@
 import React from 'react';
 import { Quote, Product, Customer } from '../types';
+import { formatProcessingDisplay } from '../utils/processingUtils';
 
 interface QuoteDisplayProps {
   quote: Quote;
@@ -44,9 +45,16 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({ quote, products, customer }
                     </p>
                     {item.appliedProcessings.length > 0 && (
                       <div className="mt-1">
-                        <p className="text-xs text-blue-600">
-                          + {item.appliedProcessings.length} processings
-                        </p>
+                        <div className="space-y-1">
+                          {item.appliedProcessings.map((processing: any, index: number) => {
+                            // For now, just show processing names - we'd need to import processings to get full details
+                            return (
+                              <p key={index} className="text-xs text-blue-600">
+                                + {processing.processingId}
+                              </p>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
