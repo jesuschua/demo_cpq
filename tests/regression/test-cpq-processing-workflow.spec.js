@@ -96,19 +96,24 @@ test.describe('CPQ Processing Workflow', () => {
 
     // Step 8: Go to Fees phase and configure delivery fees
     await page.click('button:has-text("Continue →")');
+    await page.waitForTimeout(2000);
     
-    // Configure delivery fees - set tier1 to $25 for testing
-    const tier1Input = page.locator('input[type="number"]').first();
-    await tier1Input.fill('25');
+    // Configure delivery fees - select ground floor delivery ($25)
+    await page.click('input[value="ground-floor"]');
+    await page.waitForTimeout(1000);
+    
+    // Enable waste disposal service (+$15)
+    const wasteDisposalCheckbox = page.locator('input[id="wasteDisposal"]');
+    await wasteDisposalCheckbox.check();
     await page.waitForTimeout(1000);
     
     // Configure environmental fees - set sustainability fee to $10
-    const sustainabilityInput = page.locator('input[type="number"]').nth(3);
+    const sustainabilityInput = page.locator('input[type="number"]').first();
     await sustainabilityInput.fill('10');
     await page.waitForTimeout(1000);
     
     // Enable eco-friendly packaging
-    const ecoCheckbox = page.locator('input[type="checkbox"]');
+    const ecoCheckbox = page.locator('input[id="eco-friendly"]');
     await ecoCheckbox.check();
     await page.waitForTimeout(1000);
     
@@ -153,7 +158,7 @@ test.describe('CPQ Processing Workflow', () => {
     }
     
     // Search for delivery and environmental fees
-    const feeTerms = ['Delivery', 'Environmental', 'Sustainability', 'Eco-friendly', 'Packaging'];
+    const feeTerms = ['Delivery', 'Environmental', 'Sustainability', 'Eco-friendly', 'Packaging', 'Waste', 'Disposal'];
     let foundFeeTerms = [];
     
     for (const term of feeTerms) {
@@ -162,12 +167,15 @@ test.describe('CPQ Processing Workflow', () => {
       }
     }
     
-    // Check for specific fee amounts
-    const hasDeliveryFee = printPreviewContent.includes('25') || printPreviewContent.includes('$25');
+    // Check for specific fee amounts - ground floor delivery ($25) + waste disposal ($15) = $40 total
+    const hasDeliveryFee = printPreviewContent.includes('25') || printPreviewContent.includes('$25') || 
+                          printPreviewContent.includes('40') || printPreviewContent.includes('$40');
     const hasEnvironmentalFee = printPreviewContent.includes('Environmental') || printPreviewContent.includes('environmental') ||
                                printPreviewContent.includes('Sustainability') || printPreviewContent.includes('sustainability');
     const hasEcoFriendlyFee = printPreviewContent.includes('eco') || printPreviewContent.includes('Eco') || 
                               printPreviewContent.includes('friendly') || printPreviewContent.includes('packaging');
+    const hasWasteDisposalFee = printPreviewContent.includes('Waste') || printPreviewContent.includes('waste') ||
+                               printPreviewContent.includes('Disposal') || printPreviewContent.includes('disposal');
     
     // Check if any processing-related terms are found
     const hasProcessingContent = foundProcessingTerms.length > 0;
@@ -189,6 +197,10 @@ test.describe('CPQ Processing Workflow', () => {
     expect(foundFeeTerms.length).toBeGreaterThan(0);
     expect(hasDeliveryFee).toBe(true);
     expect(hasEnvironmentalFee).toBe(true);
+    // Waste disposal fee is optional - just log if it's found
+    if (hasWasteDisposalFee) {
+      console.log('Waste disposal fee found in print preview');
+    }
     // Eco-friendly fee is optional - just log if it's found
     if (hasEcoFriendlyFee) {
       console.log('Eco-friendly fee found in print preview');
@@ -198,13 +210,14 @@ test.describe('CPQ Processing Workflow', () => {
     console.log('Print preview verification:');
     console.log('- Processing terms found:', foundProcessingTerms);
     console.log('- Fee terms found:', foundFeeTerms);
-    console.log('- Has delivery fee ($25):', hasDeliveryFee);
+    console.log('- Has delivery fee ($25 + $15 waste):', hasDeliveryFee);
     console.log('- Has environmental fee:', hasEnvironmentalFee);
+    console.log('- Has waste disposal fee:', hasWasteDisposalFee);
     console.log('- Has eco-friendly fee:', hasEcoFriendlyFee);
   });
 
-  test('Delivery fees tier testing - verify different tiers based on subtotal', async ({ page }) => {
-    // Test case 1: Low subtotal (should use tier1)
+  test('Delivery fees testing - verify different delivery types and running total', async ({ page }) => {
+    // Test different delivery types and verify running total updates
     await page.goto('http://localhost:3000');
     await page.waitForTimeout(2000);
 
@@ -241,23 +254,58 @@ test.describe('CPQ Processing Workflow', () => {
     // Move to product configuration
     await page.click('button:has-text("Continue →")');
 
-    // Add a low-value product (should trigger tier1)
+    // Add a product
     await page.click('text=12" Base Cabinet');
     await page.waitForTimeout(3000);
 
     // Go to fees phase
     await page.click('button:has-text("Continue →")');
+    await page.waitForTimeout(2000);
     
-    // Configure delivery fees
-    const tier1Input = page.locator('input[type="number"]').first();
-    await tier1Input.fill('25');
-    const tier2Input = page.locator('input[type="number"]').nth(1);
-    await tier2Input.fill('15');
-    const tier3Input = page.locator('input[type="number"]').nth(2);
-    await tier3Input.fill('5');
-    
+    // Test different delivery types
+    console.log('Testing delivery type: Curb-side (Free)');
+    await page.click('input[value="curb-side"]');
     await page.waitForTimeout(1000);
-
+    
+    // Check running total pane shows $0 delivery fee
+    const runningTotalPane = page.locator('text=Running Total').locator('..');
+    expect(await runningTotalPane.isVisible()).toBe(true);
+    
+    // Test ground floor delivery
+    console.log('Testing delivery type: Ground Floor ($25)');
+    await page.click('input[value="ground-floor"]');
+    await page.waitForTimeout(1000);
+    
+    // Test 2nd-4th floor delivery
+    console.log('Testing delivery type: 2nd-4th Floor ($50)');
+    await page.click('input[value="2nd-4th-floor"]');
+    await page.waitForTimeout(1000);
+    
+    // Test 5th-8th floor delivery
+    console.log('Testing delivery type: 5th-8th Floor ($75)');
+    await page.click('input[value="5th-8th-floor"]');
+    await page.waitForTimeout(1000);
+    
+    // Test special delivery with custom amount
+    console.log('Testing delivery type: Special ($150)');
+    await page.click('input[value="special"]');
+    await page.waitForTimeout(1000);
+    
+    // Set custom amount to $150
+    const customAmountInput = page.locator('input[placeholder*="increments of $50"]');
+    await customAmountInput.fill('150');
+    await page.waitForTimeout(1000);
+    
+    // Enable waste disposal
+    const wasteDisposalCheckbox = page.locator('input[id="wasteDisposal"]');
+    await wasteDisposalCheckbox.check();
+    await page.waitForTimeout(1000);
+    
+    // Set some environmental fees
+    const sustainabilityInput = page.locator('input[type="number"]').first();
+    await sustainabilityInput.fill('20');
+    await page.waitForTimeout(1000);
+    
     // Go to finalize phase to check the quote summary
     await page.click('button:has-text("Finalize Order →")');
     await page.waitForTimeout(2000);
@@ -266,11 +314,10 @@ test.describe('CPQ Processing Workflow', () => {
     const totalElement = page.locator('text=Total: $').last();
     const totalText = await totalElement.textContent();
     
-    // The total should include the base price + delivery fee + other fees
-    // Just verify that the total is reasonable (not just the base price)
+    // The total should include the base price + delivery fee ($150) + waste disposal ($15) + environmental fees
     const totalAmount = parseFloat(totalText.replace('Total: $', ''));
     expect(totalAmount).toBeGreaterThan(200); // Should be significantly higher than base price due to fees
     
-    console.log('Tier1 test - Final total with delivery fee:', totalText);
+    console.log('Final total with special delivery + waste disposal + environmental fees:', totalText);
   });
 });

@@ -150,9 +150,9 @@ function ImprovedApp() {
       subtotal: 0,
       totalDiscount: 0,
       deliveryFees: {
-        tier1: 0,
-        tier2: 0,
-        tier3: 0,
+        type: 'curb-side',
+        customAmount: 100,
+        wasteDisposal: false,
         calculated: 0
       },
       environmentalFees: {
@@ -179,14 +179,33 @@ function ImprovedApp() {
     const customerDiscount = subtotal * (quote.customerDiscount / 100);
     const totalDiscount = customerDiscount + quote.orderDiscount;
     
-    // Calculate delivery fees based on subtotal
+    // Calculate delivery fees based on delivery type
     let deliveryFee = 0;
-    if (subtotal <= 500) {
-      deliveryFee = quote.deliveryFees.tier1;
-    } else if (subtotal <= 1000) {
-      deliveryFee = quote.deliveryFees.tier2;
-    } else {
-      deliveryFee = quote.deliveryFees.tier3;
+    const deliveryType = quote.deliveryFees.type;
+    
+    switch (deliveryType) {
+      case 'curb-side':
+        deliveryFee = 0; // Free curb-side delivery
+        break;
+      case 'ground-floor':
+        deliveryFee = 25;
+        break;
+      case '2nd-4th-floor':
+        deliveryFee = 50;
+        break;
+      case '5th-8th-floor':
+        deliveryFee = 75;
+        break;
+      case 'special':
+        deliveryFee = quote.deliveryFees.customAmount || 0;
+        break;
+      default:
+        deliveryFee = 0;
+    }
+    
+    // Add waste disposal fee if selected
+    if (quote.deliveryFees.wasteDisposal) {
+      deliveryFee += 15;
     }
     
     // Calculate environmental fees
@@ -221,7 +240,7 @@ function ImprovedApp() {
       const updatedQuote = recalculateQuote(workflow.quote);
       setWorkflow(prev => ({ ...prev, quote: updatedQuote }));
     }
-  }, [workflow.quote?.deliveryFees, workflow.quote?.environmentalFees, workflow.currentPhase]);
+  }, [workflow.quote?.deliveryFees.type, workflow.quote?.deliveryFees.customAmount, workflow.quote?.deliveryFees.wasteDisposal, workflow.quote?.environmentalFees, workflow.currentPhase]);
 
   // Cascading updates when stepping back
   useEffect(() => {
@@ -1540,88 +1559,149 @@ function ImprovedApp() {
 
         {/* Phase 4: Fees & Delivery Configuration */}
         {workflow.currentPhase === 'fees_config' && workflow.quote && (
-          <div>
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Configure Fees & Delivery</h2>
-              <p className="text-gray-600">Set tiered delivery fees and environmental fees for your quote</p>
+          <div className="max-w-7xl mx-auto">
+            {/* Single Cohesive Header Bar - Matching Other Phases */}
+            <div className="bg-white rounded-lg shadow mb-4 p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-6">
+                  <h2 className="text-lg font-semibold text-gray-900">Configure Fees & Delivery</h2>
+                  {/* Customer Info */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Customer:</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {workflow.customer?.name}
+                    </span>
+                  </div>
+                </div>
+                {/* Right side - Quote summary */}
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-500">
+                    Subtotal: ${workflow.quote?.subtotal?.toFixed(2) || '0.00'}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="max-w-4xl mx-auto space-y-6">
-              {/* Delivery Fees Section */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Delivery Fees</h3>
-                <p className="text-gray-600 mb-4">Configure tiered delivery fees based on order value</p>
+            {/* Horizontal Layout - Three Column Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-96">
+              {/* Left Column - Delivery & Services */}
+              <div className="bg-white rounded-lg shadow h-96 flex flex-col">
+                <div className="p-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">Delivery & Services</h3>
+                  <p className="text-sm text-gray-600">Select delivery type and additional services</p>
+                </div>
                 
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex-1 overflow-y-auto p-4">
+                  <div className="space-y-4">
+                    {/* Delivery Type Selection */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Tier 1 (Up to $500)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={workflow.quote?.deliveryFees.tier1 || 0}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
-                          setWorkflow(prev => ({
-                            ...prev,
-                            quote: prev.quote ? {
-                              ...prev.quote,
-                              deliveryFees: { ...prev.quote.deliveryFees, tier1: value }
-                            } : null
-                          }));
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                      <label className="block text-sm font-medium text-gray-700 mb-3">Delivery Type</label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'curb-side', label: 'Curb-side Delivery', price: '$0', description: 'Free delivery to curb' },
+                          { value: 'ground-floor', label: 'Carry-in Ground Floor', price: '$25', description: 'Delivery and setup on ground floor' },
+                          { value: '2nd-4th-floor', label: 'Carry-in 2nd to 4th Floor', price: '$50', description: 'Delivery and setup up to 4th floor' },
+                          { value: '5th-8th-floor', label: 'Carry-in 5th to 8th Floor', price: '$75', description: 'Delivery and setup up to 8th floor' },
+                          { value: 'special', label: 'Special Delivery', price: 'Custom', description: 'Custom delivery requirements' }
+                        ].map((option) => (
+                          <label key={option.value} className="flex items-center p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="deliveryType"
+                              value={option.value}
+                              checked={workflow.quote?.deliveryFees.type === option.value}
+                              onChange={(e) => {
+                                setWorkflow(prev => ({
+                                  ...prev,
+                                  quote: prev.quote ? {
+                                    ...prev.quote,
+                                    deliveryFees: { 
+                                      ...prev.quote.deliveryFees, 
+                                      type: e.target.value as any,
+                                      customAmount: e.target.value === 'special' ? prev.quote.deliveryFees.customAmount : undefined
+                                    }
+                                  } : null
+                                }));
+                              }}
+                              className="mr-2 text-blue-600 focus:ring-blue-500"
+                            />
+                            <div className="flex-1">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-900">{option.label}</span>
+                                <span className="text-xs font-semibold text-blue-600">{option.price}</span>
+                              </div>
+                              <p className="text-xs text-gray-600">{option.description}</p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Tier 2 ($500 - $1000)</label>
+
+                    {/* Custom Amount Input for Special Delivery */}
+                    {workflow.quote?.deliveryFees.type === 'special' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Custom Delivery Amount ($)</label>
+                        <input
+                          type="number"
+                          step="50"
+                          min="100"
+                          value={workflow.quote?.deliveryFees.customAmount || 100}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value) || 100;
+                            const validatedValue = Math.max(100, value); // Ensure minimum of $100
+                            setWorkflow(prev => ({
+                              ...prev,
+                              quote: prev.quote ? {
+                                ...prev.quote,
+                                deliveryFees: { ...prev.quote.deliveryFees, customAmount: validatedValue }
+                              } : null
+                            }));
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          placeholder="Minimum $100 (increments of $50)"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Minimum amount: $100, increments of $50</p>
+                      </div>
+                    )}
+
+                    {/* Waste Disposal Checkbox */}
+                    <div className="flex items-center p-2 border border-gray-200 rounded-lg">
                       <input
-                        type="number"
-                        step="0.01"
-                        value={workflow.quote?.deliveryFees.tier2 || 0}
+                        type="checkbox"
+                        id="wasteDisposal"
+                        checked={workflow.quote?.deliveryFees.wasteDisposal || false}
                         onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
                           setWorkflow(prev => ({
                             ...prev,
                             quote: prev.quote ? {
                               ...prev.quote,
-                              deliveryFees: { ...prev.quote.deliveryFees, tier2: value }
+                              deliveryFees: { ...prev.quote.deliveryFees, wasteDisposal: e.target.checked }
                             } : null
                           }));
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="mr-2 text-blue-600 focus:ring-blue-500"
                       />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Tier 3 ($1000+)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={workflow.quote?.deliveryFees.tier3 || 0}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
-                          setWorkflow(prev => ({
-                            ...prev,
-                            quote: prev.quote ? {
-                              ...prev.quote,
-                              deliveryFees: { ...prev.quote.deliveryFees, tier3: value }
-                            } : null
-                          }));
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                      <div className="flex-1">
+                        <label htmlFor="wasteDisposal" className="text-sm font-medium text-gray-900 cursor-pointer">
+                          Waste Disposal Service
+                        </label>
+                        <p className="text-xs text-gray-600">Remove and dispose of old cabinets (+$15)</p>
+                      </div>
+                      <span className="text-xs font-semibold text-blue-600">+$15</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Environmental Fees Section */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Environmental Fees</h3>
-                <p className="text-gray-600 mb-4">Configure environmental and sustainability fees</p>
+              {/* Right Column - Environmental Fees */}
+              <div className="bg-white rounded-lg shadow h-96 flex flex-col">
+                <div className="p-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">Environmental Fees</h3>
+                  <p className="text-sm text-gray-600">Configure environmental and sustainability fees</p>
+                </div>
                 
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex-1 overflow-y-auto p-4">
+                  <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Carbon Offset Fee (%)</label>
                       <input
@@ -1638,9 +1718,10 @@ function ImprovedApp() {
                             } : null
                           }));
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                       />
                     </div>
+                    
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Sustainability Fee ($)</label>
                       <input
@@ -1657,65 +1738,96 @@ function ImprovedApp() {
                             } : null
                           }));
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                       />
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="eco-friendly"
-                      checked={workflow.quote?.environmentalFees.ecoFriendlyPackaging || false}
-                      onChange={(e) => {
-                        setWorkflow(prev => ({
-                          ...prev,
-                          quote: prev.quote ? {
-                            ...prev.quote,
-                            environmentalFees: { ...prev.quote.environmentalFees, ecoFriendlyPackaging: e.target.checked }
-                          } : null
-                        }));
-                      }}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="eco-friendly" className="ml-2 block text-sm text-gray-700">
-                      Apply eco-friendly packaging fee (+$25)
-                    </label>
+                    
+                    <div className="flex items-center p-2 border border-gray-200 rounded-lg">
+                      <input
+                        type="checkbox"
+                        id="eco-friendly"
+                        checked={workflow.quote?.environmentalFees.ecoFriendlyPackaging || false}
+                        onChange={(e) => {
+                          setWorkflow(prev => ({
+                            ...prev,
+                            quote: prev.quote ? {
+                              ...prev.quote,
+                              environmentalFees: { ...prev.quote.environmentalFees, ecoFriendlyPackaging: e.target.checked }
+                            } : null
+                          }));
+                        }}
+                        className="mr-2 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor="eco-friendly" className="text-sm font-medium text-gray-900 cursor-pointer">
+                          Eco-friendly Packaging
+                        </label>
+                        <p className="text-xs text-gray-600">Sustainable packaging materials (+$25)</p>
+                      </div>
+                      <span className="text-xs font-semibold text-blue-600">+$25</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Quote Summary */}
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Quote Summary</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span>${workflow.quote?.subtotal?.toFixed(2) || '0.00'}</span>
-                  </div>
-                  {workflow.quote?.customerDiscount > 0 && (
-                    <div className="flex justify-between text-red-600">
-                      <span>Customer Discount ({workflow.quote.customerDiscount}%):</span>
-                      <span>-${((workflow.quote.subtotal * workflow.quote.customerDiscount) / 100).toFixed(2)}</span>
+              {/* Right Column - Running Total */}
+              <div className="bg-white rounded-lg shadow h-96 flex flex-col">
+                <div className="p-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">Running Total</h3>
+                  <p className="text-sm text-gray-600">Live quote calculation</p>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-4">
+                  <div className="space-y-4">
+                    {/* Subtotal */}
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm text-gray-600">Subtotal:</span>
+                      <span className="text-sm font-medium">${workflow.quote?.subtotal?.toFixed(2) || '0.00'}</span>
                     </div>
-                  )}
-                  {workflow.quote?.orderDiscount > 0 && (
-                    <div className="flex justify-between text-red-600">
-                      <span>Order Discount:</span>
-                      <span>-${workflow.quote.orderDiscount.toFixed(2)}</span>
+
+                    {/* Customer Discount */}
+                    {workflow.quote?.customerDiscount > 0 && (
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="text-sm text-gray-600">Customer Discount ({workflow.quote.customerDiscount}%):</span>
+                        <span className="text-sm font-medium text-red-600">
+                          -${((workflow.quote.subtotal * workflow.quote.customerDiscount) / 100).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Order Discount */}
+                    {workflow.quote?.orderDiscount > 0 && (
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="text-sm text-gray-600">Order Discount:</span>
+                        <span className="text-sm font-medium text-red-600">
+                          -${workflow.quote.orderDiscount.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Delivery Fee */}
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm text-gray-600">Delivery Fee:</span>
+                      <span className="text-sm font-medium">
+                        ${workflow.quote?.deliveryFees.calculated?.toFixed(2) || '0.00'}
+                      </span>
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span>Delivery Fee:</span>
-                    <span>${workflow.quote?.deliveryFees.calculated?.toFixed(2) || '0.00'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Environmental Fees:</span>
-                    <span>${workflow.quote?.environmentalFees.calculated?.toFixed(2) || '0.00'}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold text-lg border-t pt-2">
-                    <span>Total:</span>
-                    <span>${workflow.quote?.finalTotal?.toFixed(2) || '0.00'}</span>
+
+                    {/* Environmental Fees */}
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm text-gray-600">Environmental Fees:</span>
+                      <span className="text-sm font-medium">
+                        ${workflow.quote?.environmentalFees.calculated?.toFixed(2) || '0.00'}
+                      </span>
+                    </div>
+
+                    {/* Total */}
+                    <div className="flex justify-between items-center py-3 border-t-2 border-gray-200 bg-gray-50 -mx-4 px-4 mt-4">
+                      <span className="text-base font-semibold text-gray-900">Total:</span>
+                      <span className="text-lg font-bold text-blue-600">
+                        ${workflow.quote?.finalTotal?.toFixed(2) || '0.00'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
