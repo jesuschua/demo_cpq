@@ -42,20 +42,20 @@ test.describe('CPQ Processing Workflow', () => {
     await page.click('text=Main Kitchen');
     await page.waitForTimeout(1000);
     
-    // Test room processing modal - click Dark Stain checkbox
-    const darkStainLabel = page.locator('label:has-text("Dark Stain")');
-    if (await darkStainLabel.isVisible()) {
-      const darkStainCheckbox = darkStainLabel.locator('input[type="checkbox"]');
-      await darkStainCheckbox.click();
+    // Test room processing modal - click Custom Paint Color checkbox
+    const customPaintLabel = page.locator('label:has-text("Custom Paint Color")');
+    if (await customPaintLabel.isVisible()) {
+      const customPaintCheckbox = customPaintLabel.locator('input[type="checkbox"]');
+      await customPaintCheckbox.click();
       await page.waitForTimeout(1000);
       
       // Verify modal opens
       const modal = page.locator('[role="dialog"]');
       await expect(modal).toBeVisible();
       
-      // Verify modal has stain color options
-      const stainColorSelect = page.locator('select').first();
-      await expect(stainColorSelect).toBeVisible();
+      // Verify modal has paint color options
+      const paintColorSelect = page.locator('select').first();
+      await expect(paintColorSelect).toBeVisible();
       
       // Close the modal
       const closeButton = page.locator('button:has-text("Cancel")');
@@ -174,8 +174,8 @@ test.describe('CPQ Processing Workflow', () => {
     // Get the full content of the print preview page
     const printPreviewContent = await targetPage.locator('body').textContent();
     
-    // Search for various terms that indicate Dark Stain processing
-    const processingTerms = ['Dark', 'Stain', 'Walnut', 'Processing', 'Dark Stain'];
+    // Search for various terms that indicate both room and product processing
+    const processingTerms = ['Custom', 'Paint', 'Color', 'Dark', 'Stain', 'Walnut', 'Processing', 'Custom Paint Color', 'Dark Stain'];
     let foundProcessingTerms = [];
     
     for (const term of processingTerms) {
