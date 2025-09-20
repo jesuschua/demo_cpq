@@ -1,0 +1,7 @@
+id,product_id,required_product_id,quantity_formula,is_automatic,description
+dep_cabinet_hinges,prod_trad_oak_base_12,prod_trad_oak_hinge_euro,2,true,12" base cabinet requires 2 hinges
+dep_cabinet_hinges_15,prod_trad_oak_base_15,prod_trad_oak_hinge_euro,2,true,15" base cabinet requires 2 hinges
+dep_cabinet_hardware_trad,prod_trad_oak_base_12,prod_trad_oak_knob_bronze,1,false,12" base cabinet needs hardware - knob or pull
+dep_dishwasher_cabinet,prod_appliance_dishwasher,prod_trad_oak_base_24,1,false,Dishwasher requires 24" base cabinet opening
+dep_corner_lazy_susan,prod_trad_oak_corner_36,prod_acc_lazy_susan,1,false,Corner cabinet works best with lazy susan
+dep_countertop_support,prod_quartz_carrara,prod_trad_oak_base_24,Math.ceil(counterLength / 24),false,Countertop needs base cabinet support every 24 inches

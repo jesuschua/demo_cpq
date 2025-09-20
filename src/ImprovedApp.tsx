@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Quote, Customer, Room, QuoteItem } from './types';
-import { customers, models, products, processings } from './data/sampleData';
+import { Quote, Customer, Room, QuoteItem, Model, Product, Processing } from './types';
+import { loadAllData } from './utils/csvDataLoader';
 import { formatProcessingDisplay } from './utils/processingUtils';
 import MinimalDashboard from './components/MinimalDashboard';
 import CustomerSelector from './components/CustomerSelector';
@@ -43,7 +43,39 @@ function ImprovedApp() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   
+  // Data state
+  const [data, setData] = useState<{
+    customers: Customer[];
+    models: Model[];
+    products: Product[];
+    processings: Processing[];
+  } | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
   
+  // Load data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setDataLoading(true);
+        const loadedData = await loadAllData();
+        setData({
+          customers: loadedData.customers,
+          models: loadedData.models,
+          products: loadedData.products,
+          processings: loadedData.processings
+        });
+        setDataError(null);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+        setDataError('Failed to load data. Please refresh the page.');
+      } finally {
+        setDataLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
 
   // Phase progression with validation
   const canProceedToNextPhase = () => {
@@ -233,13 +265,13 @@ function ImprovedApp() {
     // If rooms change, clear products that don't match any room's model
     if (workflow.currentPhase === 'room_config' && workflow.rooms.length > 0 && (workflow.quote?.items?.length || 0) > 0) {
       const roomModelIds = workflow.rooms.map(room => {
-        const roomModel = models.find(m => m.id === room.frontModelId);
+        const roomModel = data?.models.find(m => m.id === room.frontModelId);
         return roomModel?.id;
       }).filter(Boolean);
       
       if (roomModelIds.length > 0) {
         const compatibleProducts = (workflow.quote?.items || []).filter(item => {
-          const product = products.find(p => p.id === item.productId);
+          const product = data?.products.find(p => p.id === item.productId);
           return product && roomModelIds.includes(product.modelId);
         });
         
@@ -285,7 +317,7 @@ function ImprovedApp() {
       const updatedItems = prev.quote?.items.map(item => {
         if (item.roomId === editedRoom.id) {
           // Find the product to check if processing is applicable
-          const product = products.find(p => p.id === item.productId);
+          const product = data?.products.find(p => p.id === item.productId);
           if (!product) return item;
 
           // Update inherited processings with new room processing options
@@ -360,13 +392,13 @@ function ImprovedApp() {
     const currentRoom = getCurrentRoom();
     if (!currentRoom) return;
 
-    const product = products.find(p => p.id === productId);
+    const product = data?.products.find(p => p.id === productId);
     if (!product) return;
 
     // Apply room-level inherited processings
     const inheritedProcessings = currentRoom.activatedProcessings
       .map((ap: any) => {
-        const processing = processings.find(p => p.id === ap.processingId);
+        const processing = data?.processings.find(p => p.id === ap.processingId);
         if (!processing) return null;
         
         // Check if this processing is applicable to this product category
@@ -529,9 +561,9 @@ function ImprovedApp() {
     const quote = workflow.quote!;
     const customer = workflow.customer!;
     
-    const getProduct = (productId: string) => products.find(p => p.id === productId);
-    const getModel = (modelId: string) => models.find(m => m.id === modelId);
-    const getProcessing = (processingId: string) => processings.find(p => p.id === processingId);
+    const getProduct = (productId: string) => data?.products.find(p => p.id === productId);
+    const getModel = (modelId: string) => data?.models.find(m => m.id === modelId);
+    const getProcessing = (processingId: string) => data?.processings.find(p => p.id === processingId);
     
     // Group items by room
     const itemsByRoom = quote.items.reduce((acc, item) => {
@@ -974,7 +1006,7 @@ function ImprovedApp() {
   };
 
   const handleEditQuote = (quote: Quote) => {
-    const customer = customers.find(c => c.id === quote.customerId);
+    const customer = data?.customers.find(c => c.id === quote.customerId);
     if (customer && quote.rooms.length > 0) {
       setWorkflow({
         currentPhase: 'fees_config',
@@ -1065,7 +1097,7 @@ function ImprovedApp() {
   const getCurrentRoomModel = () => {
     const currentRoom = getCurrentRoom();
     if (!currentRoom) return null;
-    return models.find(m => m.id === currentRoom.frontModelId) || null;
+    return data?.models.find(m => m.id === currentRoom.frontModelId) || null;
   };
 
   // Phase titles and descriptions
@@ -1092,11 +1124,52 @@ function ImprovedApp() {
     }
   };
 
+  // Loading state
+  if (dataLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (dataError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-xl mb-4">⚠️</div>
+          <p className="text-gray-600 mb-4">{dataError}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Data not loaded
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">No data available</p>
+        </div>
+      </div>
+    );
+  }
+
   // Dashboard view
   if (currentView === 'dashboard') {
     return (
       <MinimalDashboard
-        customers={customers}
+        customers={data.customers}
         onStartNewQuote={handleStartNewQuote}
         onEditQuote={handleEditQuote}
       />
@@ -1168,7 +1241,7 @@ function ImprovedApp() {
             </div>
             
             <CustomerSelector
-              customers={customers}
+              customers={data.customers}
               contracts={[]}
               onCustomerSelect={handleCustomerSelect}
             />
@@ -1230,8 +1303,8 @@ function ImprovedApp() {
             </div>
 
             <HorizontalRoomManager
-              models={models}
-              processings={processings}
+              models={data.models}
+              processings={data.processings}
               onCreateQuote={handleRoomCreate}
               existingRooms={workflow.rooms}
               onAddRoom={handleRoomCreate}
@@ -1292,8 +1365,8 @@ function ImprovedApp() {
                 {/* Available Products - Left Panel (20%) */}
                 <div className="lg:col-span-1">
                   <CleanProductCatalog
-                    models={models}
-                    products={products}
+                    models={data.models}
+                    products={data.products}
                     selectedModel={getCurrentRoomModel()}
                     onModelSelect={() => {}} // Disabled in improved workflow
                     onProductSelect={(product, quantity) => handleProductAdd(product.id, quantity)}
@@ -1311,8 +1384,8 @@ function ImprovedApp() {
                   <LiveOrderGrid
                     products={workflow.quote?.items || []}
                     rooms={workflow.rooms}
-                    allProducts={products}
-                    allProcessings={processings}
+                    allProducts={data.products}
+                    allProcessings={data.processings}
                     currentRoomId={workflow.currentRoomId}
                     selectedProductId={selectedProductId}
                     onProductSelect={(productId) => {
@@ -1380,8 +1453,8 @@ function ImprovedApp() {
                       });
                       return found;
                     })()}
-                    allProducts={products}
-                    processings={processings}
+                    allProducts={data.products}
+                    processings={data.processings}
                     onProcessingApply={(productId, processing, selectedOptions = {}) => {
                       // Calculate processing price with options
                       let calculatedPrice = processing.price;
@@ -1555,9 +1628,9 @@ function ImprovedApp() {
             quote={workflow.quote}
             customer={workflow.customer}
             rooms={workflow.rooms}
-            products={products}
-            processings={processings}
-            models={models}
+            products={data.products}
+            processings={data.processings}
+            models={data.models}
             onBackToEdit={() => setWorkflow(prev => ({ ...prev, currentPhase: 'fees_config' }))}
             onPrint={() => {
               // Generate HTML content and open in new window using blob URL

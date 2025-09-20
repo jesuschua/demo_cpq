@@ -1,0 +1,22 @@
+id,name,description,category,pricing_type,price,applicable_product_categories,calculation_formula
+proc_cut_to_size,Cut to Size,Custom cut cabinet to specified dimensions,fabrication,per_unit,45,"cabinet",basePrice + 45
+proc_notch_plumbing,Plumbing Notch,Cut notch for plumbing access,fabrication,per_unit,25,"cabinet",
+proc_drill_holes,Drill Custom Holes,Drill holes for specific hardware placement,fabrication,per_unit,15,"cabinet,door",
+proc_stain_dark,Dark Stain,Apply dark walnut stain finish,finishing,percentage,0.15,"cabinet,door",
+proc_stain_medium,Medium Stain,Apply medium oak stain finish,finishing,percentage,0.10,"cabinet,door",
+proc_paint_white,White Paint,Custom white paint finish,finishing,percentage,0.20,"cabinet,door",
+proc_paint_custom,Custom Paint Color,Custom color paint finish,finishing,percentage,0.25,"cabinet,door",
+proc_install_knobs,Install Knobs,Install cabinet knobs,hardware_install,per_unit,8,"cabinet",
+proc_install_pulls,Install Pulls,Install cabinet pulls,hardware_install,per_unit,12,"cabinet",
+proc_install_push_open,Install Push-Open,Install push-to-open mechanism,hardware_install,per_unit,35,"cabinet",
+proc_edge_bullnose,Bullnose Edge,Rounded bullnose edge profile,countertop_edge,per_dimension,8,"countertop",perimeter * 8
+proc_edge_beveled,Beveled Edge,Angled beveled edge profile,countertop_edge,per_dimension,12,"countertop",perimeter * 12
+proc_undermount_sink,Undermount Sink Cutout,Cut and polish undermount sink opening,countertop_cutout,per_unit,125,"countertop",
+proc_cooktop_cutout,Cooktop Cutout,Cut opening for cooktop installation,countertop_cutout,per_unit,85,"countertop",
+proc_soft_close_hinges,Soft-Close Hinges,Upgrade to soft-close hinges,upgrade,per_unit,18,"cabinet",
+proc_full_ext_slides,Full Extension Slides,Upgrade to full extension drawer slides,upgrade,per_unit,28,"cabinet",
+proc_lazy_susan_install,Lazy Susan Installation,Install lazy susan mechanism,mechanism,per_unit,65,"cabinet",
+proc_glass_door,Glass Door Insert,Add glass insert to cabinet door,door_option,per_unit,75,"cabinet",
+proc_mesh_door,Mesh Door Insert,Add decorative mesh insert,door_option,per_unit,45,"cabinet",
+proc_led_interior,Interior LED Lighting,Install interior cabinet LED lighting,lighting,per_unit,55,"cabinet",
+proc_led_under_cabinet,Under-Cabinet LED,Install under-cabinet LED strip,lighting,per_dimension,18,"cabinet",width * 18

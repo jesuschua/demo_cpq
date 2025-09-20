@@ -1,0 +1,7 @@
+id,type,processing_ids,product_categories,product_ids,exclude_processings,require_processings,inherit_from_room,description
+rule_handle_exclusion,mutual_exclusion,"proc_install_knobs,proc_install_pulls",,,proc_install_push_open,,,Cannot have push-to-open with traditional handles
+rule_edge_exclusion,mutual_exclusion,proc_edge_bullnose,,,proc_edge_beveled,,,Can only have one edge profile per countertop
+rule_push_open_requirement,requirement,proc_install_push_open,,,proc_soft_close_hinges,,,Push-to-open requires soft-close hinges
+rule_glass_door_requirement,requirement,proc_glass_door,,,proc_led_interior,,,Glass doors should have interior lighting
+rule_room_stain_inheritance,inheritance,,cabinet,,,true,All cabinets inherit room-level stain/paint processing
+rule_room_hardware_inheritance,inheritance,,cabinet,,,true,All cabinets inherit room-level hardware selection

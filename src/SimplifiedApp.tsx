@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Quote, Customer, Room, Model } from './types';
-import { customers, models, products, processings, processingRules, productDependencies } from './data/sampleData';
+import React, { useState, useEffect } from 'react';
+import { Quote, Customer, Room, Model, Product, Processing } from './types';
+import { loadAllData } from './utils/csvDataLoader';
 import CustomerSelector from './components/CustomerSelector';
 import RoomManager from './components/RoomManager';
 import ProductCatalog from './components/ProductCatalog';
@@ -25,6 +25,40 @@ function SimplifiedApp() {
 
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
+
+  // Data state
+  const [data, setData] = useState<{
+    customers: Customer[];
+    models: Model[];
+    products: Product[];
+    processings: Processing[];
+  } | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
+  
+  // Load data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setDataLoading(true);
+        const loadedData = await loadAllData();
+        setData({
+          customers: loadedData.customers,
+          models: loadedData.models,
+          products: loadedData.products,
+          processings: loadedData.processings
+        });
+        setDataError(null);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+        setDataError('Failed to load data. Please refresh the page.');
+      } finally {
+        setDataLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
 
   const handleCustomerSelect = (customer: Customer) => {
     setState(prev => ({ 
@@ -86,9 +120,9 @@ function SimplifiedApp() {
   };
 
   const handleAddProductToQuote = (productId: string, quantity: number = 1) => {
-    if (!state.currentQuote || !selectedRoom) return;
+    if (!state.currentQuote || !selectedRoom || !data) return;
 
-    const product = products.find(p => p.id === productId);
+    const product = data.products.find(p => p.id === productId);
     if (!product) return;
 
     const newItem = {
@@ -157,6 +191,47 @@ function SimplifiedApp() {
     setSelectedModel(null);
   };
 
+  // Loading state
+  if (dataLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (dataError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-xl mb-4">⚠️</div>
+          <p className="text-gray-600 mb-4">{dataError}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Data not loaded
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">No data available</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -219,7 +294,7 @@ function SimplifiedApp() {
               <p className="text-gray-600">Choose a customer to start creating a quote</p>
             </div>
             <CustomerSelector
-              customers={customers}
+              customers={data.customers}
               contracts={[]} // No contracts in simplified version
               onCustomerSelect={handleCustomerSelect}
             />
@@ -234,7 +309,7 @@ function SimplifiedApp() {
               <p className="text-gray-600">Create rooms and select front models for your quote</p>
             </div>
             <RoomManager
-              models={models}
+              models={data.models}
               onCreateQuote={handleCreateQuote}
               existingRooms={state.currentQuote?.rooms || []}
               onAddRoom={handleAddRoom}
@@ -274,9 +349,9 @@ function SimplifiedApp() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <ProductCatalog
-                  models={models}
-                  products={products}
-                  processings={processings}
+                  models={data.models}
+                  products={data.products}
+                  processings={data.processings}
                   selectedModel={selectedModel}
                   onModelSelect={setSelectedModel}
                   onAddToQuote={(product, quantity) => handleAddProductToQuote(product.id, quantity)}
@@ -317,7 +392,7 @@ function SimplifiedApp() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Current Room</h3>
                     <div className="space-y-2 text-sm">
                       <p><span className="text-gray-600">Name:</span> <span className="font-medium">{selectedRoom.name}</span></p>
-                      <p><span className="text-gray-600">Front Model:</span> <span className="font-medium">{models.find(m => m.id === selectedRoom.frontModelId)?.name}</span></p>
+                      <p><span className="text-gray-600">Front Model:</span> <span className="font-medium">{data.models.find(m => m.id === selectedRoom.frontModelId)?.name}</span></p>
                       <p className="text-xs text-gray-500 mt-2">{selectedRoom.description}</p>
                     </div>
                   </div>
@@ -346,10 +421,10 @@ function SimplifiedApp() {
             <SimplifiedQuoteBuilder
               quote={state.currentQuote}
               rooms={state.currentQuote.rooms}
-              products={products}
-              processings={processings}
-              processingRules={processingRules}
-              productDependencies={productDependencies}
+              products={data.products}
+              processings={data.processings}
+              processingRules={[]} // TODO: Load processing rules from CSV
+              productDependencies={[]} // TODO: Load product dependencies from CSV
               onQuoteUpdate={handleQuoteUpdate}
             />
           </div>

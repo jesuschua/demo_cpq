@@ -1,0 +1,6 @@
+id,name,contract_id,discount_percentage
+cust_01,Johan Tømmer Firma æåø,contract_builder_pro,5
+cust_02,Elite Kitchen Designs,contract_designer_elite,3
+cust_03,Mike Johnson (Homeowner),contract_retail_standard,0
+cust_04,Premier Remodeling Co,contract_contractor_plus,8
+cust_05,Sarah Wilson (Homeowner),contract_retail_standard,2

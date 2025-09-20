@@ -1,0 +1,21 @@
+processing_id,option_id,value,label,price_modifier
+proc_cut_to_size,cut_precision,standard,Standard (±1/8"),0
+proc_cut_to_size,cut_precision,precise,Precise (±1/16"),10
+proc_cut_to_size,cut_precision,exact,Exact (±1/32"),20
+proc_stain_dark,stain_color,walnut,Dark Walnut,0
+proc_stain_dark,stain_color,cherry,Cherry,0.02
+proc_stain_dark,stain_color,mahogany,Mahogany,0.03
+proc_stain_dark,stain_color,ebony,Ebony,0.01
+proc_paint_custom,paint_color,pure_white,Pure White,0
+proc_paint_custom,paint_color,cloud_white,Cloud White,0
+proc_paint_custom,paint_color,pearl_gray,Pearl Gray,0
+proc_paint_custom,paint_color,charcoal_gray,Charcoal Gray,0
+proc_paint_custom,paint_color,navy_blue,Navy Blue,0.01
+proc_paint_custom,paint_color,sage_green,Sage Green,0.01
+proc_paint_custom,paint_color,dusty_blue,Dusty Blue,0.01
+proc_paint_custom,paint_color,warm_beige,Warm Beige,0
+proc_paint_custom,paint_color,classic_black,Classic Black,0.02
+proc_paint_custom,paint_finish,matte,Matte,0
+proc_paint_custom,paint_finish,satin,Satin,0.01
+proc_paint_custom,paint_finish,semi_gloss,Semi-Gloss,0.02
+proc_paint_custom,paint_finish,high_gloss,High-Gloss,0.03

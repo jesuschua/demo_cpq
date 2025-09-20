@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nordic Character Test</title>
+</head>
+<body>
+    <h1>Nordic Character Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        // Copy the fixCharacterEncoding function
+        function fixCharacterEncoding(text) {
+          let fixedText = text;
+          
+          const corruptionMappings = [
+            { pattern: /T¿mmer/g, replacement: 'Tømmer' },
+            { pattern: /Firma ¾¿/g, replacement: 'Firma æåø' },
+            { pattern: /æ¿/g, replacement: 'æå' },
+            { pattern: /¿ø/g, replacement: 'åø' },
+            { pattern: /¿/g, replacement: 'ø' },
+            { pattern: /¾/g, replacement: 'å' },
+            { pattern: /¿/g, replacement: 'æ' },
+          ];
+          
+          for (const mapping of corruptionMappings) {
+            fixedText = fixedText.replace(mapping.pattern, mapping.replacement);
+          }
+          
+          return fixedText;
+        }
+        
+        async function testCSVLoading() {
+            try {
+                const response = await fetch('/data/csv/customers.csv');
+                const arrayBuffer = await response.arrayBuffer();
+                
+                // Try different encodings
+                let text;
+                try {
+                    text = new TextDecoder('utf-8', { fatal: true }).decode(arrayBuffer);
+                } catch (e) {
+                    try {
+                        text = new TextDecoder('iso-8859-1').decode(arrayBuffer);
+                    } catch (e2) {
+                        text = new TextDecoder('windows-1252').decode(arrayBuffer);
+                    }
+                }
+                
+                // Apply character fixes
+                const fixedText = fixCharacterEncoding(text);
+                
+                document.getElementById('output').innerHTML = 
+                    '<h3>Original (corrupted):</h3><pre>' + text + '</pre>' +
+                    '<h3>Fixed (correct Nordic characters):</h3><pre>' + fixedText + '</pre>';
+                    
+                console.log('Original:', text);
+                console.log('Fixed:', fixedText);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('output').innerHTML = 'Error: ' + error.message;
+            }
+        }
+        
+        testCSVLoading();
+    </script>
+</body>
+</html>

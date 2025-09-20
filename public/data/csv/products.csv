@@ -1,0 +1,25 @@
+id,model_id,name,category,sub_category,base_price,unit,width,height,depth,in_stock,lead_time_days,description
+prod_trad_oak_base_12,mod_traditional_oak,"12"" Base Cabinet",cabinet,base,285,each,12,34.5,24,true,14,"Standard 12"" base cabinet with raised panel door"
+prod_trad_oak_base_15,mod_traditional_oak,"15"" Base Cabinet",cabinet,base,315,each,15,34.5,24,true,14,"Standard 15"" base cabinet with raised panel door"
+prod_trad_oak_base_18,mod_traditional_oak,"18"" Base Cabinet",cabinet,base,345,each,18,34.5,24,false,21,"Standard 18"" base cabinet with raised panel door"
+prod_trad_oak_base_21,mod_traditional_oak,"21"" Base Cabinet",cabinet,base,375,each,21,34.5,24,true,14,"Standard 21"" base cabinet with raised panel door"
+prod_trad_oak_base_24,mod_traditional_oak,"24"" Base Cabinet",cabinet,base,395,each,24,34.5,24,true,14,"Standard 24"" base cabinet with raised panel door"
+prod_trad_oak_wall_12,mod_traditional_oak,"12"" Wall Cabinet",cabinet,wall,225,each,12,30,12,true,14,"Standard 12"" wall cabinet with raised panel door"
+prod_trad_oak_wall_15,mod_traditional_oak,"15"" Wall Cabinet",cabinet,wall,245,each,15,30,12,true,14,"Standard 15"" wall cabinet with raised panel door"
+prod_trad_oak_wall_18,mod_traditional_oak,"18"" Wall Cabinet",cabinet,wall,265,each,18,30,12,false,28,"Standard 18"" wall cabinet with raised panel door"
+prod_trad_oak_pantry_24,mod_traditional_oak,"24"" Pantry Cabinet",cabinet,pantry,685,each,24,84,24,true,21,"Full height pantry cabinet with adjustable shelves"
+prod_trad_oak_corner_36,mod_traditional_oak,"36"" Corner Base",cabinet,corner,485,each,36,34.5,24,false,35,"Corner base cabinet with lazy susan option"
+prod_trad_oak_knob_bronze,mod_traditional_oak,Bronze Cabinet Knob,hardware,knob,8.50,each,,,,true,3,Oil-rubbed bronze cabinet knob
+prod_trad_oak_pull_bronze,mod_traditional_oak,Bronze Cabinet Pull,hardware,pull,12.75,each,,,,true,3,"4"" oil-rubbed bronze cabinet pull"
+prod_trad_oak_hinge_euro,mod_traditional_oak,European Hinge,hardware,hinge,4.25,each,,,,true,7,Soft-close European hinge
+prod_quartz_carrara,mod_traditional_oak,Carrara Quartz,countertop,quartz,65,sqft,,,,true,14,White quartz with gray veining
+prod_granite_black,mod_traditional_oak,Black Granite,countertop,granite,55,sqft,,,,true,21,Absolute black granite
+prod_mod_euro_base_12,mod_modern_euro,"12"" Euro Base",cabinet,base,325,each,12,34.5,24,true,10,Handleless European base cabinet
+prod_mod_euro_base_18,mod_modern_euro,"18"" Euro Base",cabinet,base,385,each,18,34.5,24,true,10,Handleless European base cabinet
+prod_mod_euro_wall_12,mod_modern_euro,"12"" Euro Wall",cabinet,wall,275,each,12,30,12,true,10,Handleless European wall cabinet
+prod_mod_euro_push_open,mod_modern_euro,Push-to-Open Hardware,hardware,mechanism,15.50,each,,,,true,7,Push-to-open mechanism for handleless cabinets
+prod_mod_euro_led_strip,mod_modern_euro,LED Under-Cabinet Strip,hardware,lighting,25.00,linft,,,,true,5,Integrated LED strip lighting
+prod_appliance_dishwasher,mod_traditional_oak,Built-in Dishwasher,appliance,dishwasher,895,each,24,34,24,true,7,Stainless steel built-in dishwasher
+prod_appliance_range,mod_traditional_oak,Gas Range,appliance,range,1285,each,30,36,25,false,14,"30"" gas range with convection oven"
+prod_acc_lazy_susan,mod_traditional_oak,Lazy Susan,accessory,organizer,85,each,,,,true,7,Two-tier lazy susan for corner cabinets
+prod_acc_drawer_slides,mod_traditional_oak,Soft-Close Drawer Slides,accessory,slide,22,each,,,,true,3,Full extension soft-close drawer slides

@@ -1,0 +1,6 @@
+processing_id,option_id,name,type,required,description,default_value
+proc_cut_to_size,custom_dimensions,Custom Dimensions,dimensions,true,Enter the custom dimensions for cutting,"{""width"":24,""height"":34.5,""depth"":24}"
+proc_cut_to_size,cut_precision,Cut Precision,select,false,Select the precision level for cutting,standard
+proc_stain_dark,stain_color,Stain Color,select,true,Choose the stain color,walnut
+proc_paint_custom,paint_color,Paint Color,select,true,Select the paint color from our curated collection,pure_white
+proc_paint_custom,paint_finish,Paint Finish,select,true,Choose the paint finish type,matte
