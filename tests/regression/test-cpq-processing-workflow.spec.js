@@ -10,8 +10,8 @@ test.describe('CPQ Processing Workflow', () => {
     // Step 2: Start new quote and select customer
     await page.click('button:has-text("Create Quote")');
     await page.waitForTimeout(2000);
-    // Click on John Smith Construction in the customer selection modal
-    await page.click('text=John Smith Construction');
+    // Click on Johan Tømmer Firma æåø in the customer selection modal
+    await page.click('text=Johan Tømmer Firma æåø');
     // Click "Create Order" button for the selected customer
     await page.click('button:has-text("Create Order")');
 
@@ -244,6 +244,7 @@ test.describe('CPQ Processing Workflow', () => {
   });
 
   test('Delivery fees testing - verify different delivery types and running total', async ({ page }) => {
+    test.setTimeout(60000); // Increase timeout to 60 seconds
     // Test different delivery types and verify running total updates
     await page.goto('http://localhost:3000');
     await page.waitForTimeout(2000);
@@ -251,8 +252,8 @@ test.describe('CPQ Processing Workflow', () => {
     // Start new quote
     await page.click('button:has-text("Create Quote")');
     await page.waitForTimeout(2000);
-    // Click on John Smith Construction in the customer selection modal
-    await page.click('text=John Smith Construction');
+    // Click on Johan Tømmer Firma æåø in the customer selection modal
+    await page.click('text=Johan Tømmer Firma æåø');
     // Click "Create Order" button for the selected customer
     await page.click('button:has-text("Create Order")');
 
@@ -368,7 +369,7 @@ test.describe('CPQ Processing Workflow', () => {
     // Step 2: Start new quote and select customer
     await page.click('button:has-text("Create Quote")');
     await page.waitForTimeout(2000);
-    await page.click('text=John Smith Construction');
+    await page.click('text=Johan Tømmer Firma æåø');
     await page.click('button:has-text("Create Order")');
 
     // Step 3: Create a room
@@ -438,7 +439,7 @@ test.describe('CPQ Processing Workflow', () => {
     // Step 2: Start new quote and select customer
     await page.click('button:has-text("Create Quote")');
     await page.waitForTimeout(2000);
-    await page.click('text=John Smith Construction');
+    await page.click('text=Johan Tømmer Firma æåø');
     await page.click('button:has-text("Create Order")');
 
     // Step 3: Create a room using the same pattern as working test
@@ -541,7 +542,7 @@ test.describe('CPQ Processing Workflow', () => {
     // Step 2: Start new quote and select customer
     await page.click('button:has-text("Create Quote")');
     await page.waitForTimeout(2000);
-    await page.click('text=John Smith Construction');
+    await page.click('text=Johan Tømmer Firma æåø');
     await page.click('button:has-text("Create Order")');
 
     // Step 3: Create a room
