@@ -1,7 +1,15 @@
 const { test, expect } = require('@playwright/test');
+const path = require('path');
+const fs = require('fs');
 
 test.describe('Height Verification Test', () => {
   test('should verify room configuration height constraints', async ({ page }) => {
+    // Ensure screenshots directory exists
+    const screenshotsDir = path.join('test-results', 'screenshots');
+    if (!fs.existsSync(screenshotsDir)) {
+      fs.mkdirSync(screenshotsDir, { recursive: true });
+    }
+    
     // Navigate to the app
     await page.goto('http://localhost:3000');
     
@@ -10,7 +18,7 @@ test.describe('Height Verification Test', () => {
     
     // Take a screenshot of the initial page
     await page.screenshot({ 
-      path: 'height-test-initial.png',
+      path: path.join(screenshotsDir, 'height-test-initial.png'),
       fullPage: true 
     });
     
@@ -33,7 +41,7 @@ test.describe('Height Verification Test', () => {
       
       // Take a screenshot of the room configuration
       await page.screenshot({ 
-        path: 'height-test-room-config.png',
+        path: path.join(screenshotsDir, 'height-test-room-config.png'),
         fullPage: true 
       });
     } else {

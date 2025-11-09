@@ -1,6 +1,14 @@
 const { test, expect } = require('@playwright/test');
+const path = require('path');
+const fs = require('fs');
 
 test('Debug CSV loading', async ({ page }) => {
+  // Ensure screenshots directory exists
+  const screenshotsDir = path.join('test-results', 'screenshots');
+  if (!fs.existsSync(screenshotsDir)) {
+    fs.mkdirSync(screenshotsDir, { recursive: true });
+  }
+  
   // Listen to console messages
   page.on('console', msg => {
     console.log('CONSOLE:', msg.text());
@@ -18,7 +26,7 @@ test('Debug CSV loading', async ({ page }) => {
   await page.waitForTimeout(5000);
   
   // Take a screenshot
-  await page.screenshot({ path: 'debug-csv-loading.png' });
+  await page.screenshot({ path: path.join(screenshotsDir, 'debug-csv-loading.png') });
   
   // Check what's on the page
   const bodyText = await page.textContent('body');

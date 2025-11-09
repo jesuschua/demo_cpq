@@ -1,7 +1,15 @@
 const { test, expect } = require('@playwright/test');
+const path = require('path');
+const fs = require('fs');
 
 test.describe('Room Configuration Height Test', () => {
   test('should constrain room configuration panes to viewport height', async ({ page }) => {
+    // Ensure screenshots directory exists
+    const screenshotsDir = path.join('test-results', 'screenshots');
+    if (!fs.existsSync(screenshotsDir)) {
+      fs.mkdirSync(screenshotsDir, { recursive: true });
+    }
+    
     // Navigate to the app
     await page.goto('http://localhost:3000');
     
@@ -28,7 +36,7 @@ test.describe('Room Configuration Height Test', () => {
     
     // Take a screenshot of the room configuration page
     await page.screenshot({ 
-      path: 'room-config-height-test.png',
+      path: path.join(screenshotsDir, 'room-config-height-test.png'),
       fullPage: true 
     });
     
@@ -67,7 +75,7 @@ test.describe('Room Configuration Height Test', () => {
     
     // Take a screenshot of just the room configuration area
     await page.screenshot({ 
-      path: 'room-config-panes-detail.png',
+      path: path.join(screenshotsDir, 'room-config-panes-detail.png'),
       clip: {
         x: 0,
         y: 0,
