@@ -1,11 +1,21 @@
 const { test, expect } = require('@playwright/test');
+const path = require('path');
+const fs = require('fs');
 
 test.describe('CPQ Processing Workflow', () => {
   test('Complete workflow: customer selection, room creation, product addition, processing application, and print preview', async ({ page }) => {
     test.setTimeout(60000); // Increase timeout to 60 seconds
+    
+    // Ensure screenshots directory exists
+    const screenshotsDir = path.join('test-results', 'screenshots');
+    if (!fs.existsSync(screenshotsDir)) {
+      fs.mkdirSync(screenshotsDir, { recursive: true });
+    }
+    
     // Step 1: Navigate to the app
     await page.goto('http://localhost:3000');
     await page.waitForTimeout(2000);
+    await page.screenshot({ path: path.join(screenshotsDir, 'step1-initial-page.png'), fullPage: true });
 
     // Step 2: Start new quote and select customer
     await page.click('button:has-text("Create Quote")');
@@ -14,6 +24,8 @@ test.describe('CPQ Processing Workflow', () => {
     await page.click('text=Johan Tømmer Firma æåø');
     // Click "Create Order" button for the selected customer
     await page.click('button:has-text("Create Order")');
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: path.join(screenshotsDir, 'step2-after-customer-selection.png'), fullPage: true });
 
     // Step 3: Create a room using the new three-pane layout
     await page.waitForTimeout(2000);
@@ -36,6 +48,7 @@ test.describe('CPQ Processing Workflow', () => {
     
     // Wait for room to appear in the middle pane
     await page.waitForSelector('text=Main Kitchen', { timeout: 10000 });
+    await page.screenshot({ path: path.join(screenshotsDir, 'step3-after-room-creation.png'), fullPage: true });
 
     // Step 4: Test room processing configuration
     // Select the room to show processing options
@@ -62,6 +75,7 @@ test.describe('CPQ Processing Workflow', () => {
       await closeButton.click();
       await page.waitForTimeout(1000);
     }
+    await page.screenshot({ path: path.join(screenshotsDir, 'step4-room-processing-config.png'), fullPage: true });
 
     // Step 5: Move to product configuration
     await page.click('button:has-text("Continue →")');
@@ -69,6 +83,7 @@ test.describe('CPQ Processing Workflow', () => {
     // Add a product
     await page.click('text=12" Base Cabinet');
     await page.waitForTimeout(3000);
+    await page.screenshot({ path: path.join(screenshotsDir, 'step5-after-product-addition.png'), fullPage: true });
 
     // Step 6: Click on the product in the room section to select it
     const productInOrder = page.locator('h5:has-text("12\\" Base Cabinet")').locator('..');
@@ -119,6 +134,7 @@ test.describe('CPQ Processing Workflow', () => {
         }
       }
     }
+    await page.screenshot({ path: path.join(screenshotsDir, 'step6-product-processing-applied.png'), fullPage: true });
 
     // Step 9: Go to Fees phase and configure delivery fees
     await page.click('button:has-text("Continue →")');
@@ -143,10 +159,12 @@ test.describe('CPQ Processing Workflow', () => {
     const ecoCheckbox = page.locator('input[id="eco-friendly"]');
     await ecoCheckbox.check();
     await page.waitForTimeout(1000);
+    await page.screenshot({ path: path.join(screenshotsDir, 'step7-fees-configured.png'), fullPage: true });
     
     // Step 10: Go to Finalize phase
     await page.click('button:has-text("Finalize Order →")');
     await page.waitForTimeout(3000);
+    await page.screenshot({ path: path.join(screenshotsDir, 'step8-finalize-phase.png'), fullPage: true });
     
     // Debug: Check what's on the page
     console.log('Current page URL:', page.url());
@@ -170,6 +188,8 @@ test.describe('CPQ Processing Workflow', () => {
       targetPage = pages[pages.length - 1];
       await targetPage.waitForLoadState('networkidle');
     }
+    
+    await targetPage.screenshot({ path: path.join(screenshotsDir, 'step9-print-preview.png'), fullPage: true });
     
     // Get the full content of the print preview page
     const printPreviewContent = await targetPage.locator('body').textContent();
